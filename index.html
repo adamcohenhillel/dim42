@@ -51,6 +51,44 @@
             display: block;
             z-index: 1000;
         }
+        /* New overlay styles */
+        #gameOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+        }
+        #gameFrame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            height: 90%;
+            border: none;
+            border-radius: 10px;
+            background: white;
+        }
+        #closeOverlay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #00ff77;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 2001;
+        }
+        #closeOverlay:hover {
+            background: #00cc77;
+        }
     </style>
 </head>
 <body>
@@ -60,6 +98,13 @@
     </div>
     <div id="movementJoystick"></div>
     <div id="heightJoystick"></div>
+
+    <!-- New overlay elements -->
+    <div id="gameOverlay">
+        <button id="closeOverlay">Return to Portals</button>
+        <iframe id="gameFrame" allowfullscreen></iframe>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
     <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
     <script type="importmap">
@@ -137,84 +182,17 @@
         let moveLeft = false;
         let moveRight = false;
 
-        // Key controls
-        const onKeyDown = function(event) {
-            switch (event.code) {
-                case 'ArrowUp':
-                case 'KeyW':
-                    moveForward = true;
-                    break;
-                case 'ArrowDown':
-                case 'KeyS':
-                    moveBackward = true;
-                    break;
-                case 'ArrowLeft':
-                case 'KeyA':
-                    moveLeft = true;
-                    break;
-                case 'ArrowRight':
-                case 'KeyD':
-                    moveRight = true;
-                    break;
-                case 'Space':
-                    moveUp = true;
-                    break;
-                case 'ShiftLeft':
-                    moveDown = true;
-                    break;
-            }
-        };
+        // Add overlay state tracking
+        let isOverlayActive = false;
 
-        const onKeyUp = function(event) {
-            switch (event.code) {
-                case 'ArrowUp':
-                case 'KeyW':
-                    moveForward = false;
-                    break;
-                case 'ArrowDown':
-                case 'KeyS':
-                    moveBackward = false;
-                    break;
-                case 'ArrowLeft':
-                case 'KeyA':
-                    moveLeft = false;
-                    break;
-                case 'ArrowRight':
-                case 'KeyD':
-                    moveRight = false;
-                    break;
-                case 'Space':
-                    moveUp = false;
-                    break;
-                case 'ShiftLeft':
-                    moveDown = false;
-                    break;
-            }
-        };
-
-        document.addEventListener('keydown', onKeyDown);
-        document.addEventListener('keyup', onKeyUp);
-
-        // Lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-        scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-        directionalLight.position.set(5, 5, 5);
-        directionalLight.castShadow = true;
-        directionalLight.shadow.mapSize.width = 2048;
-        directionalLight.shadow.mapSize.height = 2048;
-        scene.add(directionalLight);
-
-        // Create floating platform
-        const platformGeometry = new THREE.CylinderGeometry(5, 5, 0.5, 32);
-        const platformMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x333333,
-            roughness: 0.8,
-            metalness: 0.5
+        // Modify overlay handlers
+        document.getElementById('closeOverlay').addEventListener('click', () => {
+            const overlay = document.getElementById('gameOverlay');
+            const gameFrame = document.getElementById('gameFrame');
+            overlay.style.display = 'none';
+            gameFrame.src = '';  // Clear the iframe
+            isOverlayActive = false;  // Reset state
         });
-        const platform = new THREE.Mesh(platformGeometry, platformMaterial);
-        platform.position.y = -4;               // Move platform way down
-        scene.add(platform);
 
         // Create Rick character
         class RickCharacter {
@@ -508,8 +486,11 @@
             }
 
             checkCollision(position) {
+                // Skip collision check if overlay is active
+                if (isOverlayActive) return;
+
                 const distance = position.distanceTo(this.portal.position);
-                const COLLISION_THRESHOLD = 1.5;  // Reduced threshold for more precise detection
+                const COLLISION_THRESHOLD = 1.5;
 
                 const currentTime = Date.now();
                 if (distance < COLLISION_THRESHOLD && 
@@ -520,17 +501,22 @@
                     toPortal.subVectors(this.portal.position, position).normalize();
                     
                     // Get portal's forward direction
-                    const portalNormal = new THREE.Vector3(0, 0, -1);  // Changed to -1 to fix direction
+                    const portalNormal = new THREE.Vector3(0, 0, -1);
                     portalNormal.applyEuler(this.rotation);
                     
                     const dot = toPortal.dot(portalNormal);
                     
-                    if (dot > 0.5) { // Changed to > 0.5 to detect approach from front
+                    if (dot > 0.5) {
                         this.lastTriggerTime = currentTime;
                         // Add a small delay to ensure the collision is intentional
                         setTimeout(() => {
                             if (position.distanceTo(this.portal.position) < COLLISION_THRESHOLD) {
-                                window.location.href = this.url;
+                                // Show overlay and set active state
+                                const overlay = document.getElementById('gameOverlay');
+                                const gameFrame = document.getElementById('gameFrame');
+                                gameFrame.src = this.url;
+                                overlay.style.display = 'block';
+                                isOverlayActive = true;  // Set state
                             }
                         }, 100);
                     }
@@ -538,25 +524,126 @@
             }
         }
 
+        // Modify key controls to check overlay state
+        const onKeyDown = function(event) {
+            if (isOverlayActive) return;  // Ignore key events if overlay is active
+            
+            switch (event.code) {
+                case 'ArrowUp':
+                case 'KeyW':
+                    moveForward = true;
+                    break;
+                case 'ArrowDown':
+                case 'KeyS':
+                    moveBackward = true;
+                    break;
+                case 'ArrowLeft':
+                case 'KeyA':
+                    moveLeft = true;
+                    break;
+                case 'ArrowRight':
+                case 'KeyD':
+                    moveRight = true;
+                    break;
+                case 'Space':
+                    moveUp = true;
+                    break;
+                case 'ShiftLeft':
+                    moveDown = true;
+                    break;
+            }
+        };
+
+        const onKeyUp = function(event) {
+            if (isOverlayActive) return;  // Ignore key events if overlay is active
+            
+            switch (event.code) {
+                case 'ArrowUp':
+                case 'KeyW':
+                    moveForward = false;
+                    break;
+                case 'ArrowDown':
+                case 'KeyS':
+                    moveBackward = false;
+                    break;
+                case 'ArrowLeft':
+                case 'KeyA':
+                    moveLeft = false;
+                    break;
+                case 'ArrowRight':
+                case 'KeyD':
+                    moveRight = false;
+                    break;
+                case 'Space':
+                    moveUp = false;
+                    break;
+                case 'ShiftLeft':
+                    moveDown = false;
+                    break;
+            }
+        };
+
+        document.addEventListener('keydown', onKeyDown);
+        document.addEventListener('keyup', onKeyUp);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 5, 5);
+        directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        scene.add(directionalLight);
+
+        // Create floating platform
+        const platformGeometry = new THREE.CylinderGeometry(5, 5, 0.5, 32);
+        const platformMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x333333,
+            roughness: 0.8,
+            metalness: 0.5
+        });
+        const platform = new THREE.Mesh(platformGeometry, platformMaterial);
+        platform.position.y = -4;               // Move platform way down
+        scene.add(platform);
+
         // Create portals in a circle
         const portals = [
             new Portal(
-                new THREE.Vector3(-8, 3, -10),
-                new THREE.Euler(0, 0.3, 0),
-                "GitHub",
-                "https://github.com"
+                new THREE.Vector3(-10, 3, -8),
+                new THREE.Euler(0, 0.5, 0),
+                "2048",
+                "https://2048game.com/"
             ),
             new Portal(
-                new THREE.Vector3(8, 3, -10),
-                new THREE.Euler(0, -0.3, 0),
-                "Google",
-                "https://google.com"
+                new THREE.Vector3(-5, 3, -13),
+                new THREE.Euler(0, 0.2, 0),
+                "Flight Sim",
+                "https://fly.pieter.com/"
             ),
             new Portal(
-                new THREE.Vector3(0, 3, -15),
-                new THREE.Euler(0, 0, 0),
-                "YouTube",
-                "https://youtube.com"
+                new THREE.Vector3(5, 3, -13),
+                new THREE.Euler(0, -0.2, 0),
+                "Tetris",
+                "https://tetris.com/games-content/play-tetris-content/index-mobile.php"
+            ),
+            new Portal(
+                new THREE.Vector3(10, 3, -8),
+                new THREE.Euler(0, -0.5, 0),
+                "Pacman",
+                "https://pacman.co/"
+            ),
+            new Portal(
+                new THREE.Vector3(8, 3, -3),
+                new THREE.Euler(0, -1.0, 0),
+                "Flappy Bird",
+                "https://flappybird.gg/"
+            ),
+            new Portal(
+                new THREE.Vector3(-8, 3, -3),
+                new THREE.Euler(0, 1.0, 0),
+                "Block Breaker",
+                "https://blockbreaker.io/"
             )
         ];
 
@@ -569,43 +656,46 @@
 
         const clock = new THREE.Clock();
 
-        // Animation loop
+        // Modify animation loop to check overlay state
         function animate() {
             requestAnimationFrame(animate);
 
             const delta = clock.getDelta();
             
-            // Update Rick's position and animation
-            rick.update(delta);
-            
-            // Update controls
-            controls.update();
-
-            // Check portal collisions using Rick's position instead of camera
-            portals.forEach(portal => {
-                portal.checkCollision(rick.group.position);
-            });
-
-            // Update portal effects
-            portals.forEach(portal => {
-                // Rotate spiral
-                portal.spiral.rotation.z += 0.01;
+            // Only update game state if overlay is not active
+            if (!isOverlayActive) {
+                // Update Rick's position and animation
+                rick.update(delta);
                 
-                // Rotate portal texture
-                if(portal.portalMaterial.map) {
-                    portal.portalMaterial.map.rotation += 0.01;
-                    portal.portalMaterial.map.needsUpdate = true;
-                }
+                // Update controls
+                controls.update();
 
-                // Update particles
-                portal.updateParticles();
+                // Check portal collisions using Rick's position instead of camera
+                portals.forEach(portal => {
+                    portal.checkCollision(rick.group.position);
+                });
 
-                // Pulse effects
-                const pulse = Math.sin(Date.now() * 0.003) * 0.2 + 0.8;
-                portal.portalMaterial.opacity = 0.6 * pulse;
-                portal.spiral.material.opacity = 0.8 * pulse;
-                portal.spiral.material.emissiveIntensity = 0.5 * pulse;
-            });
+                // Update portal effects
+                portals.forEach(portal => {
+                    // Rotate spiral
+                    portal.spiral.rotation.z += 0.01;
+                    
+                    // Rotate portal texture
+                    if(portal.portalMaterial.map) {
+                        portal.portalMaterial.map.rotation += 0.01;
+                        portal.portalMaterial.map.needsUpdate = true;
+                    }
+
+                    // Update particles
+                    portal.updateParticles();
+
+                    // Pulse effects
+                    const pulse = Math.sin(Date.now() * 0.003) * 0.2 + 0.8;
+                    portal.portalMaterial.opacity = 0.6 * pulse;
+                    portal.spiral.material.opacity = 0.8 * pulse;
+                    portal.spiral.material.emissiveIntensity = 0.5 * pulse;
+                });
+            }
 
             renderer.render(scene, camera);
         }
