@@ -80,14 +80,84 @@
             background: #00ff77;
             color: black;
             border: none;
-            padding: 10px 20px;
+            padding: 10px 15px;  /* Increased base padding */
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
             z-index: 2001;
+            display: flex;
+            align-items: center;
+            gap: 8px;  /* Increased gap */
         }
-        #closeOverlay:hover {
+        #openNewTab {
+            position: absolute;
+            top: 20px;
+            right: 180px;
+            background: #00ff77;
+            color: black;
+            border: none;
+            padding: 10px 15px;  /* Increased base padding */
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 2001;
+            display: flex;
+            align-items: center;
+            gap: 8px;  /* Increased gap */
+        }
+        .button-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;  /* Increased gap */
+            white-space: nowrap;  /* Prevent text wrapping */
+        }
+        .portal-logo {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+        }
+        #closeOverlay:hover, #openNewTab:hover {
             background: #00cc77;
+        }
+
+        /* Mobile styles */
+        @media (max-width: 768px) {
+            #closeOverlay, #openNewTab {
+                padding: 15px 20px;  /* Larger padding on mobile */
+                font-size: 18px;     /* Larger font on mobile */
+            }
+            
+            .portal-logo {
+                width: 32px;         /* Larger logo on mobile */
+                height: 32px;
+            }
+            
+            #openNewTab {
+                right: 200px;        /* More space between buttons on mobile */
+            }
+        }
+
+        /* Small mobile styles */
+        @media (max-width: 480px) {
+            #closeOverlay, #openNewTab {
+                padding: 20px 25px;  /* Even larger padding on small mobile */
+                font-size: 20px;     /* Even larger font on small mobile */
+            }
+            
+            .portal-logo {
+                width: 40px;         /* Even larger logo on small mobile */
+                height: 40px;
+            }
+            
+            #openNewTab {
+                right: 220px;        /* More space between buttons on small mobile */
+            }
+            
+            /* Stack buttons vertically on very small screens */
+            #openNewTab {
+                top: 80px;          /* Position below the close button */
+                right: 20px;        /* Align with close button */
+            }
         }
     </style>
 </head>
@@ -101,7 +171,18 @@
 
     <!-- New overlay elements -->
     <div id="gameOverlay">
-        <button id="closeOverlay">Return to Portals</button>
+        <button id="openNewTab">
+            <div class="button-content">
+                <img src="assets/portallogo1.png" alt="Portal Logo" class="portal-logo">
+                <span>Open in New Tab</span>
+            </div>
+        </button>
+        <button id="closeOverlay">
+            <div class="button-content">
+                <img src="assets/portallogo1.png" alt="Portal Logo" class="portal-logo">
+                <span>Back to Dim42</span>
+            </div>
+        </button>
         <iframe id="gameFrame" allowfullscreen></iframe>
     </div>
 
@@ -184,6 +265,9 @@
 
         // Add overlay state tracking
         let isOverlayActive = false;
+        let currentGameUrl = '';  // Track current game URL
+        let lastOverlayCloseTime = 0;  // Track when overlay was last closed
+        const OVERLAY_COOLDOWN = 5000;  // 5 seconds cooldown
 
         // Modify overlay handlers
         document.getElementById('closeOverlay').addEventListener('click', () => {
@@ -192,6 +276,12 @@
             overlay.style.display = 'none';
             gameFrame.src = '';  // Clear the iframe
             isOverlayActive = false;  // Reset state
+            lastOverlayCloseTime = Date.now();  // Set the close time
+        });
+
+        // Add new tab handler
+        document.getElementById('openNewTab').addEventListener('click', () => {
+            window.open(currentGameUrl, '_blank');
         });
 
         // Create Rick character
@@ -489,6 +579,9 @@
                 // Skip collision check if overlay is active
                 if (isOverlayActive) return;
 
+                // Check if we're still in cooldown period
+                if (Date.now() - lastOverlayCloseTime < OVERLAY_COOLDOWN) return;
+
                 const distance = position.distanceTo(this.portal.position);
                 const COLLISION_THRESHOLD = 1.5;
 
@@ -515,6 +608,7 @@
                                 const overlay = document.getElementById('gameOverlay');
                                 const gameFrame = document.getElementById('gameFrame');
                                 gameFrame.src = this.url;
+                                currentGameUrl = this.url;  // Store current game URL
                                 overlay.style.display = 'block';
                                 isOverlayActive = true;  // Set state
                             }
