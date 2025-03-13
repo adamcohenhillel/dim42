@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Rick and Morty Portals</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: Arial, sans-serif;
+            font-size: 24px;
+            color: white;
+        }
+        #instructions {
+            position: fixed;
+            left: 50%;
+            bottom: 20px;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 5px;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading">Loading...</div>
+    <div id="instructions">
+        Use WASD or Arrow Keys to move | Mouse to look around | Walk through a portal to enter
+    </div>
+    <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+        import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+        // Scene setup
+        const scene = new THREE.Scene();
+        
+        // Create space background with stars
+        const spaceTexture = new THREE.CubeTextureLoader()
+            .load([
+                'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_px.jpg',
+                'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_nx.jpg',
+                'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_py.jpg',
+                'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_ny.jpg',
+                'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_pz.jpg',
+                'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_nz.jpg'
+            ]);
+        scene.background = spaceTexture;
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        document.body.appendChild(renderer.domElement);
+        document.querySelector('.loading').style.display = 'none';
+
+        // Add stars
+        function addStar() {
+            const geometry = new THREE.SphereGeometry(0.1, 24, 24);
+            const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const star = new THREE.Mesh(geometry, material);
+
+            const [x, y, z] = Array(3).fill().map(() => THREE.MathUtils.randFloatSpread(100));
+            star.position.set(x, y, z);
+            scene.add(star);
+        }
+        Array(200).fill().forEach(addStar);
+
+        // Movement Controls
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxPolarAngle = Math.PI / 2.1;
+        controls.minPolarAngle = Math.PI / 2.2;
+        controls.maxDistance = 3;               // Closer camera
+        controls.minDistance = 3;               
+        controls.target.set(0, 0.5, 0);        // Lower target point
+        controls.enablePan = false;
+        controls.enableZoom = false;
+        controls.rotateSpeed = 0.5;
+
+        // Initial camera position
+        camera.position.set(0, 1.5, 3);        // Lower camera position
+
+        // Movement variables
+        const velocity = new THREE.Vector3();
+        const direction = new THREE.Vector3();
+        let moveForward = false;
+        let moveBackward = false;
+        let moveLeft = false;
+        let moveRight = false;
+
+        // Key controls
+        const onKeyDown = function(event) {
+            switch (event.code) {
+                case 'ArrowUp':
+                case 'KeyW':
+                    moveForward = true;
+                    break;
+                case 'ArrowDown':
+                case 'KeyS':
+                    moveBackward = true;
+                    break;
+                case 'ArrowLeft':
+                case 'KeyA':
+                    moveLeft = true;
+                    break;
+                case 'ArrowRight':
+                case 'KeyD':
+                    moveRight = true;
+                    break;
+            }
+        };
+
+        const onKeyUp = function(event) {
+            switch (event.code) {
+                case 'ArrowUp':
+                case 'KeyW':
+                    moveForward = false;
+                    break;
+                case 'ArrowDown':
+                case 'KeyS':
+                    moveBackward = false;
+                    break;
+                case 'ArrowLeft':
+                case 'KeyA':
+                    moveLeft = false;
+                    break;
+                case 'ArrowRight':
+                case 'KeyD':
+                    moveRight = false;
+                    break;
+            }
+        };
+
+        document.addEventListener('keydown', onKeyDown);
+        document.addEventListener('keyup', onKeyUp);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 5, 5);
+        directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        scene.add(directionalLight);
+
+        // Create floating platform
+        const platformGeometry = new THREE.CylinderGeometry(5, 5, 0.5, 32);
+        const platformMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x333333,
+            roughness: 0.8,
+            metalness: 0.5
+        });
+        const platform = new THREE.Mesh(platformGeometry, platformMaterial);
+        platform.position.y = -4;               // Move platform way down
+        scene.add(platform);
+
+        // Create Rick character
+        class RickCharacter {
+            constructor() {
+                this.group = new THREE.Group();
+                scene.add(this.group);
+                
+                // Add debug cube to visualize position
+                const debugGeometry = new THREE.BoxGeometry(1, 2, 1);
+                const debugMaterial = new THREE.MeshBasicMaterial({ 
+                    color: 0xff0000,
+                    wireframe: true 
+                });
+                this.debugCube = new THREE.Mesh(debugGeometry, debugMaterial);
+                this.debugCube.position.y = 1;
+                this.group.add(this.debugCube);
+                
+                // Load Rick model
+                const loader = new GLTFLoader();
+                loader.load('assets/rick.glb', (gltf) => {
+                    this.model = gltf.scene;
+                    this.model.scale.set(1.5, 1.5, 1.5);  // Smaller scale
+                    // Position the model so waist is at screen bottom
+                    this.model.position.set(0, -3, 0);    // Move down so legs are below screen
+                    this.group.add(this.model);
+                    this.group.remove(this.debugCube);
+                }, 
+                undefined,
+                (error) => {
+                    console.error('Error loading Rick:', error);
+                });
+
+                // Initial position
+                this.group.position.set(0, 0, 0);
+                this.velocity = new THREE.Vector3();
+                this.direction = new THREE.Vector3();
+            }
+
+            update(delta) {
+                // Update position based on movement
+                this.direction.z = Number(moveForward) - Number(moveBackward);
+                this.direction.x = Number(moveLeft) - Number(moveRight);
+                this.direction.normalize();
+
+                const speed = 5;
+                if (moveForward || moveBackward) this.velocity.z = this.direction.z * speed * delta;
+                if (moveLeft || moveRight) this.velocity.x = this.direction.x * speed * delta;
+
+                // Get camera's horizontal rotation
+                const cameraDirection = new THREE.Vector3();
+                camera.getWorldDirection(cameraDirection);
+                const cameraAngle = Math.atan2(cameraDirection.x, cameraDirection.z);
+
+                // Apply movement relative to camera direction
+                if (this.velocity.length() > 0) {
+                    this.group.rotation.y = cameraAngle;
+                    
+                    // Move Rick
+                    const movement = new THREE.Vector3(this.velocity.x, 0, this.velocity.z);
+                    movement.applyAxisAngle(new THREE.Vector3(0, 1, 0), cameraAngle);
+                    this.group.position.add(movement);
+                }
+
+                // Update camera target to follow Rick's upper body
+                controls.target.copy(this.group.position).add(new THREE.Vector3(0, 0.5, 0));
+                
+                // Reset velocity
+                this.velocity.set(0, 0, 0);
+            }
+        }
+
+        // Create Rick instance
+        const rick = new RickCharacter();
+
+        // Portal class
+        class Portal {
+            constructor(position, rotation, title, url) {
+                this.url = url;
+                this.position = position;
+                this.rotation = rotation;
+                this.lastTriggerTime = 0;  // Add cooldown tracking
+                this.triggerCooldown = 1000; // 1 second cooldown
+
+                // Create portal spiral effect
+                const spiralGeometry = new THREE.TorusGeometry(2, 0.3, 16, 100);
+                const spiralMaterial = new THREE.MeshStandardMaterial({ 
+                    color: 0x00ff77,
+                    emissive: 0x00ff77,
+                    emissiveIntensity: 0.5,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                this.spiral = new THREE.Mesh(spiralGeometry, spiralMaterial);
+                this.spiral.position.copy(position);
+                this.spiral.rotation.copy(rotation);
+                scene.add(this.spiral);
+
+                // Create portal inner effect (swirling texture)
+                const portalGeometry = new THREE.CircleGeometry(1.7, 32);
+                this.portalMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x00ff77,
+                    transparent: true,
+                    opacity: 0.6,
+                    side: THREE.DoubleSide
+                });
+
+                // Create swirl texture
+                const canvas = document.createElement('canvas');
+                canvas.width = 512;
+                canvas.height = 512;
+                const ctx = canvas.getContext('2d');
+                
+                // Create gradient
+                const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
+                gradient.addColorStop(0, '#00ff77');
+                gradient.addColorStop(0.5, '#00aa77');
+                gradient.addColorStop(1, '#007755');
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, 512, 512);
+
+                // Create spiral pattern
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                for(let i = 0; i < 360; i += 30) {
+                    ctx.beginPath();
+                    ctx.arc(256, 256, i, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                const texture = new THREE.CanvasTexture(canvas);
+                this.portalMaterial.map = texture;
+
+                this.portal = new THREE.Mesh(portalGeometry, this.portalMaterial);
+                this.portal.position.copy(position);
+                this.portal.rotation.copy(rotation);
+                scene.add(this.portal);
+
+                // Add electric particles
+                this.particles = [];
+                for(let i = 0; i < 20; i++) {
+                    const particleGeometry = new THREE.SphereGeometry(0.03, 8, 8);
+                    const particleMaterial = new THREE.MeshBasicMaterial({
+                        color: 0x00ff77,
+                        transparent: true,
+                        opacity: 0.8
+                    });
+                    const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+                    this.resetParticle(particle);
+                    scene.add(particle);
+                    this.particles.push(particle);
+                }
+
+                // Add title
+                this.addTitle(title);
+            }
+
+            resetParticle(particle) {
+                const angle = Math.random() * Math.PI * 2;
+                const radius = 1.7 + Math.random() * 0.5;
+                particle.position.x = this.position.x + Math.cos(angle) * radius;
+                particle.position.y = this.position.y + Math.sin(angle) * radius;
+                particle.position.z = this.position.z;
+                particle.userData.speed = 0.02 + Math.random() * 0.03;
+                particle.userData.angle = angle;
+            }
+
+            updateParticles() {
+                this.particles.forEach(particle => {
+                    particle.userData.angle += particle.userData.speed;
+                    if(particle.userData.angle > Math.PI * 2) {
+                        this.resetParticle(particle);
+                    }
+                    const radius = 1.7 + Math.random() * 0.5;
+                    particle.position.x = this.position.x + Math.cos(particle.userData.angle) * radius;
+                    particle.position.y = this.position.y + Math.sin(particle.userData.angle) * radius;
+                });
+            }
+
+            addTitle(text) {
+                const loader = new FontLoader();
+                loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', (font) => {
+                    const geometry = new TextGeometry(text, {
+                        font: font,
+                        size: 0.3,
+                        height: 0.05
+                    });
+                    geometry.computeBoundingBox();
+                    const textMaterial = new THREE.MeshStandardMaterial({ 
+                        color: 0x00ff77,
+                        emissive: 0x00ff77,
+                        emissiveIntensity: 0.5
+                    });
+                    const textMesh = new THREE.Mesh(geometry, textMaterial);
+                    
+                    // Center the text above the portal
+                    const textWidth = geometry.boundingBox.max.x - geometry.boundingBox.min.x;
+                    textMesh.position.copy(this.position);
+                    textMesh.position.y += 2.5;
+                    textMesh.position.x -= textWidth / 2;
+                    textMesh.rotation.y = this.rotation.y;
+                    
+                    scene.add(textMesh);
+                });
+            }
+
+            checkCollision(position) {
+                const distance = position.distanceTo(this.portal.position);
+                const COLLISION_THRESHOLD = 1.5;  // Reduced threshold for more precise detection
+
+                const currentTime = Date.now();
+                if (distance < COLLISION_THRESHOLD && 
+                    currentTime - this.lastTriggerTime > this.triggerCooldown) {
+                    
+                    // Get direction from Rick to portal
+                    const toPortal = new THREE.Vector3();
+                    toPortal.subVectors(this.portal.position, position).normalize();
+                    
+                    // Get portal's forward direction
+                    const portalNormal = new THREE.Vector3(0, 0, -1);  // Changed to -1 to fix direction
+                    portalNormal.applyEuler(this.rotation);
+                    
+                    const dot = toPortal.dot(portalNormal);
+                    
+                    if (dot > 0.5) { // Changed to > 0.5 to detect approach from front
+                        this.lastTriggerTime = currentTime;
+                        // Add a small delay to ensure the collision is intentional
+                        setTimeout(() => {
+                            if (position.distanceTo(this.portal.position) < COLLISION_THRESHOLD) {
+                                window.location.href = this.url;
+                            }
+                        }, 100);
+                    }
+                }
+            }
+        }
+
+        // Create portals in a circle
+        const portals = [
+            new Portal(
+                new THREE.Vector3(-8, 3, -10),
+                new THREE.Euler(0, 0.3, 0),
+                "GitHub",
+                "https://github.com"
+            ),
+            new Portal(
+                new THREE.Vector3(8, 3, -10),
+                new THREE.Euler(0, -0.3, 0),
+                "Google",
+                "https://google.com"
+            ),
+            new Portal(
+                new THREE.Vector3(0, 3, -15),
+                new THREE.Euler(0, 0, 0),
+                "YouTube",
+                "https://youtube.com"
+            )
+        ];
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        const clock = new THREE.Clock();
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const delta = clock.getDelta();
+            
+            // Update Rick's position and animation
+            rick.update(delta);
+            
+            // Update controls
+            controls.update();
+
+            // Check portal collisions using Rick's position instead of camera
+            portals.forEach(portal => {
+                portal.checkCollision(rick.group.position);
+            });
+
+            // Update portal effects
+            portals.forEach(portal => {
+                // Rotate spiral
+                portal.spiral.rotation.z += 0.01;
+                
+                // Rotate portal texture
+                if(portal.portalMaterial.map) {
+                    portal.portalMaterial.map.rotation += 0.01;
+                    portal.portalMaterial.map.needsUpdate = true;
+                }
+
+                // Update particles
+                portal.updateParticles();
+
+                // Pulse effects
+                const pulse = Math.sin(Date.now() * 0.003) * 0.2 + 0.8;
+                portal.portalMaterial.opacity = 0.6 * pulse;
+                portal.spiral.material.opacity = 0.8 * pulse;
+                portal.spiral.material.emissiveIntensity = 0.5 * pulse;
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+</html>

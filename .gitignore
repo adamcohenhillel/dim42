@@ -1,0 +1,14 @@
+# node:
+node_modules/
+
+# editor:
+.vscode/
+
+# environment:
+.env
+
+# build:
+dist/
+
+# misc:
+*.log
