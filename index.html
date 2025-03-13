@@ -89,6 +89,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            transition: background-color 0.2s ease;
         }
         #openNewTab {
             position: absolute;
@@ -105,6 +106,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            transition: background-color 0.2s ease;
         }
         .button-content {
             display: flex;
@@ -116,6 +118,7 @@
             width: 24px;
             height: 24px;
             object-fit: contain;
+            filter: brightness(0) invert(1); /* Make icons white */
         }
         #closeOverlay:hover, #openNewTab:hover {
             background: #00cc77;
@@ -150,6 +153,7 @@
             .portal-logo {
                 width: 20px;
                 height: 20px;
+                filter: brightness(0) invert(1); /* Make icons white */
             }
             
             /* Stack buttons vertically on very small screens */
@@ -336,6 +340,7 @@
             .portal-logo {
                 width: 32px;         /* Larger logo on mobile */
                 height: 32px;
+                filter: brightness(0) invert(1); /* Make icons white */
             }
             
             #openNewTab {
@@ -419,16 +424,16 @@
     <!-- Intro Overlay -->
     <div id="introOverlay">
         <div id="introContent">
-            <img src="assets/portallogo1.png" alt="Dim42 Logo" id="introLogo">
-            <h1 id="introTitle">Welcome to Dim42</h1>
-            <p id="introDescription">
+            <img src="assets/portallogo1.png" alt="Dim42 Logo" id="introLogo" style="max-width: 90%; height: auto;">
+            <h1 id="introTitle" style="font-size: max(24px, 4vw);">Welcome to Dim42</h1>
+            <p id="introDescription" style="font-size: max(16px, 2.5vw); padding: 0 20px;">
                 Explore a multiverse of games through Rick and Morty-style portals. 
                 Walk up to any portal to enter a different game dimension!
             </p>
             
-            <div id="introInstructions">
-                <h3>How to Navigate:</h3>
-                <ul>
+            <div id="introInstructions" style="padding: 0 20px;">
+                <h3 style="font-size: max(20px, 3vw);">How to Navigate:</h3>
+                <ul style="font-size: max(14px, 2vw); padding-left: 20px;">
                     <li>Click/touch and drag to move around</li>
                     <li>Mouse/swipe to look around</li>
                     <li>Walk into a portal to play that game</li>
@@ -438,16 +443,16 @@
                 </ul>
             </div>
             
-            <div id="introButtons">
-                <button id="startExploringBtn" class="intro-button">
+            <div id="introButtons" style="display: flex; flex-direction: column; gap: 15px; align-items: center; width: 100%;">
+                <button id="startExploringBtn" class="intro-button" style="width: 80%; padding: 15px; font-size: max(20px, 2.5vw);">
                     <div class="button-content">
-                        <img src="assets/portallogo1.png" alt="Portal Logo" class="portal-logo">
-                        <span>Start Exploring</span>
+                        <img src="assets/portallogo1.png" alt="Portal Logo" class="portal-logo" style="width: max(25px, 3vw); height: max(25px, 3vw);">
+                        <span>ENTER DIM42</span>
                     </div>
                 </button>
-                <button id="submitPortalBtn" class="intro-button">
+                <button id="submitPortalBtn" class="intro-button" style="width: 60%; padding: 12px; font-size: max(16px, 2vw);">
                     <div class="button-content">
-                        <img src="assets/portallogo1.png" alt="Portal Logo" class="portal-logo">
+                        <img src="assets/portallogo1.png" alt="Portal Logo" class="portal-logo" style="width: max(20px, 2.5vw); height: max(20px, 2.5vw);">
                         <span>Submit New Portal</span>
                     </div>
                 </button>
@@ -456,19 +461,21 @@
     </div>
     
     <div id="gameOverlay">
-        <button id="closeOverlay">
-            <div class="button-content">
-                <img src="assets/portallogo1.png" alt="Portal Logo" class="portal-logo">
-                <span>Back to Dim42</span>
-            </div>
-        </button>
-        <button id="openNewTab">
-            <div class="button-content">
-                <img src="assets/portallogo1.png" alt="Portal Logo" class="portal-logo">
-                <span>Open in New Tab</span>
-            </div>
-        </button>
-        <iframe id="gameFrame" allowfullscreen></iframe>
+        <div style="display: flex; justify-content: space-between; padding: 10px 20px; width: 100%;">
+            <button id="closeOverlay" style="font-size: max(16px, 2.5vw); padding: 10px 20px;">
+                <div class="button-content">
+                    <img src="assets/back.png" alt="Back Icon" class="portal-logo" style="filter: brightness(0); width: max(20px, 3vw); height: max(20px, 3vw);">
+                    <span>Back to Dim42</span>
+                </div>
+            </button>
+            <button id="openNewTab" style="font-size: max(16px, 2.5vw); padding: 10px 20px;">
+                <div class="button-content">
+                    <img src="assets/newtab.png" alt="New Tab Icon" class="portal-logo" style="filter: brightness(0); width: max(20px, 3vw); height: max(20px, 3vw);">
+                    <span>Open in New Tab</span>
+                </div>
+            </button>
+        </div>
+        <iframe id="gameFrame" allowfullscreen style="width: 95%; height: 90%; margin: auto;"></iframe>
     </div>
 
     <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
