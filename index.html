@@ -164,12 +164,8 @@
 <body>
     <div class="loading">Loading...</div>
     <div id="instructions">
-        Left joystick to move, Right joystick up/down to fly, WASD/Space for keyboard controls | Mouse to look around
+        Click/touch and drag to move | Mouse/swipe to look around
     </div>
-    <div id="movementJoystick"></div>
-    <div id="heightJoystick"></div>
-
-    <!-- New overlay elements -->
     <div id="gameOverlay">
         <button id="openNewTab">
             <div class="button-content">
@@ -186,7 +182,6 @@
         <iframe id="gameFrame" allowfullscreen></iframe>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
     <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
     <script type="importmap">
     {
@@ -262,6 +257,9 @@
         let moveBackward = false;
         let moveLeft = false;
         let moveRight = false;
+        let isMouseDown = false;
+        let mouseX = 0;
+        let mouseY = 0;
 
         // Add overlay state tracking
         let isOverlayActive = false;
@@ -282,6 +280,88 @@
         // Add new tab handler
         document.getElementById('openNewTab').addEventListener('click', () => {
             window.open(currentGameUrl, '_blank');
+        });
+
+        // Add click-based movement
+        renderer.domElement.addEventListener('mousedown', (event) => {
+            if (isOverlayActive) return;
+            isMouseDown = true;
+            mouseX = event.clientX;
+            mouseY = event.clientY;
+        });
+
+        renderer.domElement.addEventListener('mousemove', (event) => {
+            if (!isMouseDown || isOverlayActive) return;
+            
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            
+            // Calculate direction based on mouse position relative to center
+            const dx = event.clientX - centerX;
+            const dy = event.clientY - centerY;
+            
+            moveForward = dy < -10;
+            moveBackward = dy > 10;
+            moveLeft = dx < -10;
+            moveRight = dx > 10;
+        });
+
+        renderer.domElement.addEventListener('mouseup', () => {
+            isMouseDown = false;
+            moveForward = false;
+            moveBackward = false;
+            moveLeft = false;
+            moveRight = false;
+        });
+
+        renderer.domElement.addEventListener('mouseleave', () => {
+            isMouseDown = false;
+            moveForward = false;
+            moveBackward = false;
+            moveLeft = false;
+            moveRight = false;
+        });
+
+        // Add touch support for mobile
+        renderer.domElement.addEventListener('touchstart', (event) => {
+            if (isOverlayActive) return;
+            event.preventDefault();
+            isMouseDown = true;
+            mouseX = event.touches[0].clientX;
+            mouseY = event.touches[0].clientY;
+        });
+
+        renderer.domElement.addEventListener('touchmove', (event) => {
+            if (!isMouseDown || isOverlayActive) return;
+            event.preventDefault();
+            
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            
+            // Calculate direction based on touch position relative to center
+            const dx = event.touches[0].clientX - centerX;
+            const dy = event.touches[0].clientY - centerY;
+            
+            moveForward = dy < -10;
+            moveBackward = dy > 10;
+            moveLeft = dx < -10;
+            moveRight = dx > 10;
+        });
+
+        renderer.domElement.addEventListener('touchend', () => {
+            isMouseDown = false;
+            moveForward = false;
+            moveBackward = false;
+            moveLeft = false;
+            moveRight = false;
+        });
+
+        renderer.domElement.addEventListener('touchcancel', () => {
+            isMouseDown = false;
+            moveForward = false;
+            moveBackward = false;
+            moveLeft = false;
+            moveRight = false;
         });
 
         // Create Rick character
@@ -325,13 +405,11 @@
                 // Update position based on movement
                 this.direction.z = Number(moveForward) - Number(moveBackward);
                 this.direction.x = Number(moveLeft) - Number(moveRight);
-                this.direction.y = Number(moveUp) - Number(moveDown); // Add downward movement
                 this.direction.normalize();
 
                 const speed = 5;
                 if (moveForward || moveBackward) this.velocity.z = this.direction.z * speed * delta;
                 if (moveLeft || moveRight) this.velocity.x = this.direction.x * speed * delta;
-                if (moveUp || moveDown) this.velocity.y = this.direction.y * speed * delta;
 
                 // Get camera's horizontal rotation
                 const cameraDirection = new THREE.Vector3();
@@ -342,8 +420,8 @@
                 if (this.velocity.length() > 0) {
                     this.group.rotation.y = cameraAngle;
                     
-                    // Move Rick with vertical movement
-                    const movement = new THREE.Vector3(this.velocity.x, this.velocity.y, this.velocity.z);
+                    // Move Rick with horizontal movement only
+                    const movement = new THREE.Vector3(this.velocity.x, 0, this.velocity.z);
                     movement.applyAxisAngle(new THREE.Vector3(0, 1, 0), cameraAngle);
                     this.group.position.add(movement);
                 }
@@ -356,92 +434,29 @@
             }
         }
 
-        // Mobile controls setup
-        let movementJoystick = null;
-        let heightJoystick = null;
-        
-        const movementOptions = {
-            zone: document.getElementById('movementJoystick'),
-            mode: 'static',
-            position: { left: '115px', bottom: '115px' },
-            color: 'rgb(0, 255, 119)',
-            size: 150,
-            lockX: true, // Lock X-axis for pure up/down control
-            lockY: false,
-            dynamicPage: true
-        };
-        
-        const heightOptions = {
-            zone: document.getElementById('heightJoystick'),
-            mode: 'static',
-            position: { right: '115px', bottom: '115px' },
-            color: 'rgb(0, 255, 119)',
-            size: 150,
-            lockX: false,
-            lockY: false,
-            dynamicPage: true
-        };
-        
-        movementJoystick = nipplejs.create(movementOptions);
-        heightJoystick = nipplejs.create(heightOptions);
-        
-        // Add vertical movement variables
-        let moveUp = false;
-        let moveDown = false;
-        
-        // Left joystick - purely up/down movement
-        movementJoystick.on('move', (evt, data) => {
-            const degrees = data.angle.degree;
-            
-            moveUp = false;
-            moveDown = false;
-            
-            // Simple up/down control
-            if (degrees < 180) {  // Upper half
-                moveUp = true;
-            } else {  // Lower half
-                moveDown = true;
-            }
-        });
-        
-        movementJoystick.on('end', () => {
-            moveUp = false;
-            moveDown = false;
-        });
-        
-        // Right joystick - forward/backward/left/right movement
-        heightJoystick.on('move', (evt, data) => {
-            const degrees = data.angle.degree;
-            
-            moveForward = false;
-            moveBackward = false;
-            moveLeft = false;
-            moveRight = false;
-            
-            // Simple 90-degree zones
-            if (degrees >= 45 && degrees <= 135) {  // Up zone
-                moveForward = true;
-            }
-            if (degrees >= 225 && degrees <= 315) {  // Down zone
-                moveBackward = true;
-            }
-            if (degrees >= 135 && degrees <= 225) {  // Left zone
-                moveLeft = true;
-            }
-            if (degrees >= 315 || degrees <= 45) {  // Right zone
-                moveRight = true;
-            }
-        });
-        
-        heightJoystick.on('end', () => {
-            moveForward = false;
-            moveBackward = false;
-            moveLeft = false;
-            moveRight = false;
-        });
-
         // Create Rick instance
         const rick = new RickCharacter();
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 5, 5);
+        directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        scene.add(directionalLight);
+
+        // Create floating platform
+        const platformGeometry = new THREE.CylinderGeometry(5, 5, 0.5, 32);
+        const platformMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x333333,
+            roughness: 0.8,
+            metalness: 0.5
+        });
+        const platform = new THREE.Mesh(platformGeometry, platformMaterial);
+        platform.position.y = -4;               // Move platform way down
+        scene.add(platform);
 
         // Portal class
         class Portal {
@@ -618,123 +633,40 @@
             }
         }
 
-        // Modify key controls to check overlay state
-        const onKeyDown = function(event) {
-            if (isOverlayActive) return;  // Ignore key events if overlay is active
-            
-            switch (event.code) {
-                case 'ArrowUp':
-                case 'KeyW':
-                    moveForward = true;
-                    break;
-                case 'ArrowDown':
-                case 'KeyS':
-                    moveBackward = true;
-                    break;
-                case 'ArrowLeft':
-                case 'KeyA':
-                    moveLeft = true;
-                    break;
-                case 'ArrowRight':
-                case 'KeyD':
-                    moveRight = true;
-                    break;
-                case 'Space':
-                    moveUp = true;
-                    break;
-                case 'ShiftLeft':
-                    moveDown = true;
-                    break;
-            }
-        };
-
-        const onKeyUp = function(event) {
-            if (isOverlayActive) return;  // Ignore key events if overlay is active
-            
-            switch (event.code) {
-                case 'ArrowUp':
-                case 'KeyW':
-                    moveForward = false;
-                    break;
-                case 'ArrowDown':
-                case 'KeyS':
-                    moveBackward = false;
-                    break;
-                case 'ArrowLeft':
-                case 'KeyA':
-                    moveLeft = false;
-                    break;
-                case 'ArrowRight':
-                case 'KeyD':
-                    moveRight = false;
-                    break;
-                case 'Space':
-                    moveUp = false;
-                    break;
-                case 'ShiftLeft':
-                    moveDown = false;
-                    break;
-            }
-        };
-
-        document.addEventListener('keydown', onKeyDown);
-        document.addEventListener('keyup', onKeyUp);
-
-        // Lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-        scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-        directionalLight.position.set(5, 5, 5);
-        directionalLight.castShadow = true;
-        directionalLight.shadow.mapSize.width = 2048;
-        directionalLight.shadow.mapSize.height = 2048;
-        scene.add(directionalLight);
-
-        // Create floating platform
-        const platformGeometry = new THREE.CylinderGeometry(5, 5, 0.5, 32);
-        const platformMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x333333,
-            roughness: 0.8,
-            metalness: 0.5
-        });
-        const platform = new THREE.Mesh(platformGeometry, platformMaterial);
-        platform.position.y = -4;               // Move platform way down
-        scene.add(platform);
-
         // Create portals in a circle
         const portals = [
             new Portal(
-                new THREE.Vector3(-10, 3, -8),
+                new THREE.Vector3(-10, 0, -8),
                 new THREE.Euler(0, 0.5, 0),
                 "2048",
                 "https://2048game.com/"
             ),
             new Portal(
-                new THREE.Vector3(-5, 3, -13),
+                new THREE.Vector3(-5, 0, -13),
                 new THREE.Euler(0, 0.2, 0),
                 "Flight Sim",
                 "https://fly.pieter.com/"
             ),
             new Portal(
-                new THREE.Vector3(5, 3, -13),
+                new THREE.Vector3(5, 0, -13),
                 new THREE.Euler(0, -0.2, 0),
                 "Tetris",
                 "https://tetris.com/games-content/play-tetris-content/index-mobile.php"
             ),
             new Portal(
-                new THREE.Vector3(10, 3, -8),
+                new THREE.Vector3(10, 0, -8),
                 new THREE.Euler(0, -0.5, 0),
                 "Pacman",
                 "https://pacman.co/"
             ),
             new Portal(
-                new THREE.Vector3(8, 3, -3),
+                new THREE.Vector3(8, 0, -3),
                 new THREE.Euler(0, -1.0, 0),
                 "Flappy Bird",
                 "https://flappybird.gg/"
             ),
             new Portal(
-                new THREE.Vector3(-8, 3, -3),
+                new THREE.Vector3(-8, 0, -3),
                 new THREE.Euler(0, 1.0, 0),
                 "Block Breaker",
                 "https://blockbreaker.io/"
