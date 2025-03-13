@@ -61,6 +61,7 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.8);
             z-index: 2000;
+            overflow: hidden; /* Prevent scrolling */
         }
         #gameFrame {
             position: absolute;
@@ -80,36 +81,36 @@
             background: #00ff77;
             color: black;
             border: none;
-            padding: 10px 15px;  /* Increased base padding */
+            padding: 10px 15px;
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
             z-index: 2001;
             display: flex;
             align-items: center;
-            gap: 8px;  /* Increased gap */
+            gap: 8px;
         }
         #openNewTab {
             position: absolute;
-            top: 20px;
-            right: 180px;
+            top: 80px; /* Position below the close button */
+            right: 20px;
             background: #00ff77;
             color: black;
             border: none;
-            padding: 10px 15px;  /* Increased base padding */
+            padding: 10px 15px;
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
             z-index: 2001;
             display: flex;
             align-items: center;
-            gap: 8px;  /* Increased gap */
+            gap: 8px;
         }
         .button-content {
             display: flex;
             align-items: center;
-            gap: 8px;  /* Increased gap */
-            white-space: nowrap;  /* Prevent text wrapping */
+            gap: 8px;
+            white-space: nowrap;
         }
         .portal-logo {
             width: 24px;
@@ -118,6 +119,91 @@
         }
         #closeOverlay:hover, #openNewTab:hover {
             background: #00cc77;
+        }
+
+        /* Mobile-friendly adjustments for game overlay */
+        @media (max-width: 768px) {
+            #closeOverlay, #openNewTab {
+                padding: 12px 15px;
+                font-size: 14px;
+                width: auto;
+                max-width: 150px;
+            }
+            
+            #gameFrame {
+                width: 95%;
+                height: 85%; /* Smaller height to make room for buttons */
+                top: 55%; /* Move down slightly to make room for buttons */
+            }
+        }
+        
+        /* Even smaller screens */
+        @media (max-width: 480px) {
+            #closeOverlay, #openNewTab {
+                padding: 15px;
+                font-size: 16px;
+                right: 10px;
+                width: auto;
+                max-width: 140px;
+            }
+            
+            .portal-logo {
+                width: 20px;
+                height: 20px;
+            }
+            
+            /* Stack buttons vertically on very small screens */
+            #openNewTab {
+                top: 70px;          /* Position below the close button */
+                right: 10px;        /* Align with close button */
+            }
+            
+            #gameFrame {
+                width: 100%;
+                height: 80%;
+                border-radius: 0; /* Remove border radius on small screens */
+            }
+            
+            /* Improved mobile styling for intro overlay */
+            #introContent {
+                padding: 20px;
+                width: 90%;
+                max-width: 100%;
+            }
+            
+            #introLogo {
+                width: 80px;
+                height: 80px;
+            }
+            
+            #introTitle {
+                font-size: 24px;
+            }
+            
+            #introDescription {
+                font-size: 16px;
+            }
+            
+            #introInstructions {
+                padding: 10px;
+            }
+            
+            #introInstructions li {
+                font-size: 14px;
+                margin-bottom: 6px;
+            }
+            
+            .intro-button {
+                width: 100%;
+                padding: 15px;
+                font-size: 16px;
+                max-width: 250px;
+            }
+            
+            .intro-button .portal-logo {
+                width: 24px;
+                height: 24px;
+            }
         }
 
         /* Intro overlay styles */
@@ -135,6 +221,8 @@
             justify-content: center;
             color: white;
             font-family: Arial, sans-serif;
+            overflow-y: auto; /* Allow scrolling on small screens */
+            padding: 20px; /* Add padding for small screens */
         }
         
         #introContent {
@@ -145,6 +233,7 @@
             border-radius: 15px;
             border: 2px solid #00ff77;
             box-shadow: 0 0 20px rgba(0, 255, 119, 0.5);
+            margin: auto; /* Center vertically when scrolling */
         }
         
         #introLogo {
@@ -193,9 +282,10 @@
         
         #introButtons {
             display: flex;
+            flex-direction: column; /* Stack buttons vertically by default */
             gap: 15px;
-            flex-wrap: wrap;
             justify-content: center;
+            align-items: center; /* Center buttons */
         }
         
         .intro-button {
@@ -203,14 +293,24 @@
             color: black;
             border: none;
             padding: 12px 20px;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
             font-weight: bold;
+            transition: all 0.2s ease;
+            min-width: 200px; /* Ensure buttons have a minimum width */
+            display: flex;
+            justify-content: center;
+            align-items: center; /* Center content vertically */
+            width: 100%; /* Full width */
+            max-width: 300px; /* Maximum width */
+        }
+        
+        .intro-button .button-content {
             display: flex;
             align-items: center;
-            gap: 8px;
-            transition: all 0.2s ease;
+            justify-content: center;
+            gap: 10px;
         }
         
         .intro-button:hover {
@@ -258,42 +358,6 @@
             .intro-button {
                 padding: 15px 20px;
                 font-size: 18px;
-            }
-        }
-
-        /* Small mobile styles */
-        @media (max-width: 480px) {
-            #closeOverlay, #openNewTab {
-                padding: 20px 25px;  /* Even larger padding on small mobile */
-                font-size: 20px;     /* Even larger font on small mobile */
-            }
-            
-            .portal-logo {
-                width: 40px;         /* Even larger logo on small mobile */
-                height: 40px;
-            }
-            
-            #openNewTab {
-                right: 220px;        /* More space between buttons on small mobile */
-            }
-            
-            /* Stack buttons vertically on very small screens */
-            #openNewTab {
-                top: 80px;          /* Position below the close button */
-                right: 20px;        /* Align with close button */
-            }
-            
-            #introButtons {
-                flex-direction: column;
-            }
-            
-            #introLogo {
-                width: 80px;
-                height: 80px;
-            }
-            
-            #introTitle {
-                font-size: 24px;
             }
         }
 
@@ -392,16 +456,16 @@
     </div>
     
     <div id="gameOverlay">
-        <button id="openNewTab">
-            <div class="button-content">
-                <img src="assets/portallogo1.png" alt="Portal Logo" class="portal-logo">
-                <span>Open in New Tab</span>
-            </div>
-        </button>
         <button id="closeOverlay">
             <div class="button-content">
                 <img src="assets/portallogo1.png" alt="Portal Logo" class="portal-logo">
                 <span>Back to Dim42</span>
+            </div>
+        </button>
+        <button id="openNewTab">
+            <div class="button-content">
+                <img src="assets/portallogo1.png" alt="Portal Logo" class="portal-logo">
+                <span>Open in New Tab</span>
             </div>
         </button>
         <iframe id="gameFrame" allowfullscreen></iframe>
@@ -932,18 +996,19 @@
 
         // Portal class
         class Portal {
-            constructor(position, rotation, title, url) {
+            constructor(position, rotation, title, url, color = 0x00ff77) {
                 this.url = url;
                 this.position = position;
                 this.rotation = rotation;
                 this.lastTriggerTime = 0;  // Add cooldown tracking
                 this.triggerCooldown = 1000; // 1 second cooldown
+                this.color = color;
 
                 // Create portal spiral effect
                 const spiralGeometry = new THREE.TorusGeometry(2, 0.3, 16, 100);
                 const spiralMaterial = new THREE.MeshStandardMaterial({ 
-                    color: 0x00ff77,
-                    emissive: 0x00ff77,
+                    color: this.color,
+                    emissive: this.color,
                     emissiveIntensity: 0.5,
                     transparent: true,
                     opacity: 0.8
@@ -956,7 +1021,7 @@
                 // Create portal inner effect (swirling texture)
                 const portalGeometry = new THREE.CircleGeometry(1.7, 32);
                 this.portalMaterial = new THREE.MeshBasicMaterial({
-                    color: 0x00ff77,
+                    color: this.color,
                     transparent: true,
                     opacity: 0.6,
                     side: THREE.DoubleSide
@@ -970,9 +1035,15 @@
                 
                 // Create gradient
                 const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
-                gradient.addColorStop(0, '#00ff77');
-                gradient.addColorStop(0.5, '#00aa77');
-                gradient.addColorStop(1, '#007755');
+                
+                // Convert hex color to RGB components for gradient
+                const r = (this.color >> 16) & 255;
+                const g = (this.color >> 8) & 255;
+                const b = this.color & 255;
+                
+                gradient.addColorStop(0, `rgb(${r}, ${g}, ${b})`);
+                gradient.addColorStop(0.5, `rgb(${Math.floor(r*0.7)}, ${Math.floor(g*0.7)}, ${Math.floor(b*0.7)})`);
+                gradient.addColorStop(1, `rgb(${Math.floor(r*0.4)}, ${Math.floor(g*0.4)}, ${Math.floor(b*0.4)})`);
                 
                 ctx.fillStyle = gradient;
                 ctx.fillRect(0, 0, 512, 512);
@@ -999,7 +1070,7 @@
                 for(let i = 0; i < 20; i++) {
                     const particleGeometry = new THREE.SphereGeometry(0.03, 8, 8);
                     const particleMaterial = new THREE.MeshBasicMaterial({
-                        color: 0x00ff77,
+                        color: this.color,
                         transparent: true,
                         opacity: 0.8
                     });
@@ -1045,8 +1116,8 @@
                     });
                     geometry.computeBoundingBox();
                     const textMaterial = new THREE.MeshStandardMaterial({ 
-                        color: 0x00ff77,
-                        emissive: 0x00ff77,
+                        color: this.color,
+                        emissive: this.color,
                         emissiveIntensity: 0.5
                     });
                     const textMesh = new THREE.Mesh(geometry, textMaterial);
@@ -1108,40 +1179,35 @@
         // Create portals in a circle
         const portals = [
             new Portal(
-                new THREE.Vector3(-10, 0, -8),
+                new THREE.Vector3(-8, 0, -8),
                 new THREE.Euler(0, 0.5, 0),
                 "2048",
-                "https://2048game.com/"
+                "https://arcadefun.vercel.app/game/2048"
             ),
             new Portal(
-                new THREE.Vector3(-5, 0, -13),
-                new THREE.Euler(0, 0.2, 0),
-                "Flight Sim",
+                new THREE.Vector3(0, 0, -12),
+                new THREE.Euler(0, 0, 0),
+                "Fly Pieter",
                 "https://fly.pieter.com/"
             ),
             new Portal(
-                new THREE.Vector3(5, 0, -13),
-                new THREE.Euler(0, -0.2, 0),
-                "Tetris",
-                "https://tetris.com/games-content/play-tetris-content/index-mobile.php"
-            ),
-            new Portal(
-                new THREE.Vector3(10, 0, -8),
+                new THREE.Vector3(8, 0, -8),
                 new THREE.Euler(0, -0.5, 0),
-                "Pacman",
-                "https://pacman.co/"
-            ),
-            new Portal(
-                new THREE.Vector3(8, 0, -3),
-                new THREE.Euler(0, -1.0, 0),
                 "Flappy Bird",
-                "https://flappybird.gg/"
+                "https://arcadefun.vercel.app/game/flappybird"
             ),
             new Portal(
-                new THREE.Vector3(-8, 0, -3),
+                new THREE.Vector3(10, 0, -2),
+                new THREE.Euler(0, -1.0, 0),
+                "Pacman",
+                "https://arcadefun.vercel.app/game/pacman"
+            ),
+            new Portal(
+                new THREE.Vector3(-10, 0, -2),
                 new THREE.Euler(0, 1.0, 0),
-                "Block Breaker",
-                "https://blockbreaker.io/"
+                "Submit New Portal",
+                "https://tally.so/r/wgvvPJ",
+                0xff0000  // Red color for the submission portal
             )
         ];
 
