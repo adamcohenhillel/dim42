@@ -27,13 +27,40 @@
             text-align: center;
             pointer-events: none;
         }
+        #movementJoystick {
+            position: fixed;
+            bottom: 40px;
+            left: 40px;
+            width: 150px;
+            height: 150px;
+            background: rgba(0, 255, 119, 0.2);
+            border: 2px solid rgba(0, 255, 119, 0.5);
+            border-radius: 50%;
+            display: block;
+            z-index: 1000;
+        }
+        #heightJoystick {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 150px;
+            height: 150px;
+            background: rgba(0, 255, 119, 0.2);
+            border: 2px solid rgba(0, 255, 119, 0.5);
+            border-radius: 50%;
+            display: block;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
     <div class="loading">Loading...</div>
     <div id="instructions">
-        Use WASD or Arrow Keys to move | Mouse to look around | Walk through a portal to enter
+        Left joystick to move, Right joystick up/down to fly, WASD/Space for keyboard controls | Mouse to look around
     </div>
+    <div id="movementJoystick"></div>
+    <div id="heightJoystick"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
     <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
     <script type="importmap">
     {
@@ -129,6 +156,12 @@
                 case 'KeyD':
                     moveRight = true;
                     break;
+                case 'Space':
+                    moveUp = true;
+                    break;
+                case 'ShiftLeft':
+                    moveDown = true;
+                    break;
             }
         };
 
@@ -149,6 +182,12 @@
                 case 'ArrowRight':
                 case 'KeyD':
                     moveRight = false;
+                    break;
+                case 'Space':
+                    moveUp = false;
+                    break;
+                case 'ShiftLeft':
+                    moveDown = false;
                     break;
             }
         };
@@ -218,11 +257,13 @@
                 // Update position based on movement
                 this.direction.z = Number(moveForward) - Number(moveBackward);
                 this.direction.x = Number(moveLeft) - Number(moveRight);
+                this.direction.y = Number(moveUp) - Number(moveDown); // Add downward movement
                 this.direction.normalize();
 
                 const speed = 5;
                 if (moveForward || moveBackward) this.velocity.z = this.direction.z * speed * delta;
                 if (moveLeft || moveRight) this.velocity.x = this.direction.x * speed * delta;
+                if (moveUp || moveDown) this.velocity.y = this.direction.y * speed * delta;
 
                 // Get camera's horizontal rotation
                 const cameraDirection = new THREE.Vector3();
@@ -233,8 +274,8 @@
                 if (this.velocity.length() > 0) {
                     this.group.rotation.y = cameraAngle;
                     
-                    // Move Rick
-                    const movement = new THREE.Vector3(this.velocity.x, 0, this.velocity.z);
+                    // Move Rick with vertical movement
+                    const movement = new THREE.Vector3(this.velocity.x, this.velocity.y, this.velocity.z);
                     movement.applyAxisAngle(new THREE.Vector3(0, 1, 0), cameraAngle);
                     this.group.position.add(movement);
                 }
@@ -246,6 +287,90 @@
                 this.velocity.set(0, 0, 0);
             }
         }
+
+        // Mobile controls setup
+        let movementJoystick = null;
+        let heightJoystick = null;
+        
+        const movementOptions = {
+            zone: document.getElementById('movementJoystick'),
+            mode: 'static',
+            position: { left: '115px', bottom: '115px' },
+            color: 'rgb(0, 255, 119)',
+            size: 150,
+            lockX: true, // Lock X-axis for pure up/down control
+            lockY: false,
+            dynamicPage: true
+        };
+        
+        const heightOptions = {
+            zone: document.getElementById('heightJoystick'),
+            mode: 'static',
+            position: { right: '115px', bottom: '115px' },
+            color: 'rgb(0, 255, 119)',
+            size: 150,
+            lockX: false,
+            lockY: false,
+            dynamicPage: true
+        };
+        
+        movementJoystick = nipplejs.create(movementOptions);
+        heightJoystick = nipplejs.create(heightOptions);
+        
+        // Add vertical movement variables
+        let moveUp = false;
+        let moveDown = false;
+        
+        // Left joystick - purely up/down movement
+        movementJoystick.on('move', (evt, data) => {
+            const degrees = data.angle.degree;
+            
+            moveUp = false;
+            moveDown = false;
+            
+            // Simple up/down control
+            if (degrees < 180) {  // Upper half
+                moveUp = true;
+            } else {  // Lower half
+                moveDown = true;
+            }
+        });
+        
+        movementJoystick.on('end', () => {
+            moveUp = false;
+            moveDown = false;
+        });
+        
+        // Right joystick - forward/backward/left/right movement
+        heightJoystick.on('move', (evt, data) => {
+            const degrees = data.angle.degree;
+            
+            moveForward = false;
+            moveBackward = false;
+            moveLeft = false;
+            moveRight = false;
+            
+            // Simple 90-degree zones
+            if (degrees >= 45 && degrees <= 135) {  // Up zone
+                moveForward = true;
+            }
+            if (degrees >= 225 && degrees <= 315) {  // Down zone
+                moveBackward = true;
+            }
+            if (degrees >= 135 && degrees <= 225) {  // Left zone
+                moveLeft = true;
+            }
+            if (degrees >= 315 || degrees <= 45) {  // Right zone
+                moveRight = true;
+            }
+        });
+        
+        heightJoystick.on('end', () => {
+            moveForward = false;
+            moveBackward = false;
+            moveLeft = false;
+            moveRight = false;
+        });
 
         // Create Rick instance
         const rick = new RickCharacter();
