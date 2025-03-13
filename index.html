@@ -120,6 +120,112 @@
             background: #00cc77;
         }
 
+        /* Intro overlay styles */
+        #introOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        
+        #introContent {
+            max-width: 600px;
+            text-align: center;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            border: 2px solid #00ff77;
+            box-shadow: 0 0 20px rgba(0, 255, 119, 0.5);
+        }
+        
+        #introLogo {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 10px rgba(0, 255, 119, 0.7));
+        }
+        
+        #introTitle {
+            font-size: 36px;
+            margin-bottom: 15px;
+            color: #00ff77;
+            text-shadow: 0 0 10px rgba(0, 255, 119, 0.5);
+        }
+        
+        #introDescription {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        
+        #introInstructions {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 3px solid #00ff77;
+        }
+        
+        #introInstructions h3 {
+            color: #00ff77;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        
+        #introInstructions ul {
+            text-align: left;
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        #introInstructions li {
+            margin-bottom: 8px;
+        }
+        
+        #introButtons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .intro-button {
+            background: #00ff77;
+            color: black;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .intro-button:hover {
+            background: #00cc77;
+            transform: scale(1.05);
+        }
+        
+        #submitPortalBtn {
+            background: #ff5722;
+        }
+        
+        #submitPortalBtn:hover {
+            background: #e64a19;
+        }
+
         /* Mobile styles */
         @media (max-width: 768px) {
             #closeOverlay, #openNewTab {
@@ -134,6 +240,24 @@
             
             #openNewTab {
                 right: 200px;        /* More space between buttons on mobile */
+            }
+            
+            #introContent {
+                width: 90%;
+                padding: 20px;
+            }
+            
+            #introTitle {
+                font-size: 28px;
+            }
+            
+            #introDescription {
+                font-size: 16px;
+            }
+            
+            .intro-button {
+                padding: 15px 20px;
+                font-size: 18px;
             }
         }
 
@@ -158,14 +282,115 @@
                 top: 80px;          /* Position below the close button */
                 right: 20px;        /* Align with close button */
             }
+            
+            #introButtons {
+                flex-direction: column;
+            }
+            
+            #introLogo {
+                width: 80px;
+                height: 80px;
+            }
+            
+            #introTitle {
+                font-size: 24px;
+            }
+        }
+
+        /* Virtual joystick styles */
+        #virtualJoystick {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 200px;
+            height: 200px;
+            background: rgba(0, 255, 119, 0.3);
+            border: 4px solid rgba(0, 255, 119, 0.8);
+            border-radius: 50%;
+            display: block; /* Always visible */
+            z-index: 1000;
+            touch-action: none;
+            box-shadow: 0 0 20px rgba(0, 255, 119, 0.6);
+        }
+        
+        #joystickKnob {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: rgba(0, 255, 119, 0.6);
+            border: 4px solid rgba(0, 255, 119, 1);
+            border-radius: 50%;
+            pointer-events: none;
+            box-shadow: 0 0 15px rgba(0, 255, 119, 0.8);
+        }
+        
+        /* Make joystick even larger on mobile devices */
+        @media (max-width: 768px) {
+            #virtualJoystick {
+                width: 220px;
+                height: 220px;
+            }
+            
+            #joystickKnob {
+                width: 100px;
+                height: 100px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="loading">Loading...</div>
     <div id="instructions">
-        Click/touch and drag to move | Mouse/swipe to look around
+        Click/touch and drag to move | Mouse/swipe to look around | WASD/Arrow keys to move
     </div>
+    
+    <!-- Virtual Joystick for Mobile -->
+    <div id="virtualJoystick">
+        <div id="joystickKnob"></div>
+    </div>
+    
+    <!-- Intro Overlay -->
+    <div id="introOverlay">
+        <div id="introContent">
+            <img src="assets/portallogo1.png" alt="Dim42 Logo" id="introLogo">
+            <h1 id="introTitle">Welcome to Dim42</h1>
+            <p id="introDescription">
+                Explore a multiverse of games through Rick and Morty-style portals. 
+                Walk up to any portal to enter a different game dimension!
+            </p>
+            
+            <div id="introInstructions">
+                <h3>How to Navigate:</h3>
+                <ul>
+                    <li>Click/touch and drag to move around</li>
+                    <li>Mouse/swipe to look around</li>
+                    <li>Walk into a portal to play that game</li>
+                    <li>Close the game to return to Dim42</li>
+                    <li>Use WASD or Arrow keys to move</li>
+                    <li>On mobile, use the virtual joystick in the bottom right</li>
+                </ul>
+            </div>
+            
+            <div id="introButtons">
+                <button id="startExploringBtn" class="intro-button">
+                    <div class="button-content">
+                        <img src="assets/portallogo1.png" alt="Portal Logo" class="portal-logo">
+                        <span>Start Exploring</span>
+                    </div>
+                </button>
+                <button id="submitPortalBtn" class="intro-button">
+                    <div class="button-content">
+                        <img src="assets/portallogo1.png" alt="Portal Logo" class="portal-logo">
+                        <span>Submit New Portal</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <div id="gameOverlay">
         <button id="openNewTab">
             <div class="button-content">
@@ -260,12 +485,36 @@
         let isMouseDown = false;
         let mouseX = 0;
         let mouseY = 0;
+        
+        // Movement settings
+        const MOVEMENT_SENSITIVITY = 0.8; // Increased sensitivity
+        const MOVEMENT_THRESHOLD = 20; // Higher value = less sensitive
+        const MOVEMENT_SPEED = 5; // Increased speed
+
+        // Joystick variables
+        let joystickActive = false;
+        let joystickTouchId = null;
+        const joystickElement = document.getElementById('virtualJoystick');
+        const joystickKnob = document.getElementById('joystickKnob');
+        let joystickCenterX = 0;
+        let joystickCenterY = 0;
+        let joystickX = 0;
+        let joystickY = 0;
 
         // Add overlay state tracking
         let isOverlayActive = false;
         let currentGameUrl = '';  // Track current game URL
         let lastOverlayCloseTime = 0;  // Track when overlay was last closed
         const OVERLAY_COOLDOWN = 5000;  // 5 seconds cooldown
+        
+        // Intro overlay handlers
+        document.getElementById('startExploringBtn').addEventListener('click', () => {
+            document.getElementById('introOverlay').style.display = 'none';
+        });
+        
+        document.getElementById('submitPortalBtn').addEventListener('click', () => {
+            window.open('https://tally.so/r/wgvvPJ', '_blank');
+        });
 
         // Modify overlay handlers
         document.getElementById('closeOverlay').addEventListener('click', () => {
@@ -282,9 +531,226 @@
             window.open(currentGameUrl, '_blank');
         });
 
+        // Virtual joystick controls for mobile
+        function setupJoystick() {
+            // Calculate joystick center position
+            const joystickRect = joystickElement.getBoundingClientRect();
+            joystickCenterX = joystickRect.left + joystickRect.width / 2;
+            joystickCenterY = joystickRect.top + joystickRect.height / 2;
+            
+            // Set initial knob position
+            resetJoystickKnob();
+            
+            // Touch start event
+            joystickElement.addEventListener('touchstart', (event) => {
+                if (isOverlayActive) return;
+                event.preventDefault();
+                
+                // Store the touch identifier to track this touch
+                if (!joystickActive) {
+                    const touch = event.touches[0];
+                    joystickTouchId = touch.identifier;
+                    joystickActive = true;
+                    
+                    // Update joystick position
+                    updateJoystickPosition(touch.clientX, touch.clientY);
+                }
+            });
+            
+            // Add mouse support for joystick on desktop
+            joystickElement.addEventListener('mousedown', (event) => {
+                if (isOverlayActive) return;
+                event.preventDefault();
+                
+                joystickActive = true;
+                
+                // Update joystick position
+                updateJoystickPosition(event.clientX, event.clientY);
+                
+                // Add document-level mouse move and up handlers
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+            });
+            
+            function handleMouseMove(event) {
+                if (!joystickActive || isOverlayActive) return;
+                event.preventDefault();
+                
+                updateJoystickPosition(event.clientX, event.clientY);
+            }
+            
+            function handleMouseUp(event) {
+                event.preventDefault();
+                
+                joystickActive = false;
+                resetJoystickKnob();
+                
+                // Reset movement
+                moveForward = false;
+                moveBackward = false;
+                moveLeft = false;
+                moveRight = false;
+                
+                // Remove document-level handlers
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+            }
+            
+            // Touch move event
+            joystickElement.addEventListener('touchmove', (event) => {
+                if (!joystickActive || isOverlayActive) return;
+                event.preventDefault();
+                
+                // Find our touch among all touches
+                for (let i = 0; i < event.touches.length; i++) {
+                    const touch = event.touches[i];
+                    if (touch.identifier === joystickTouchId) {
+                        updateJoystickPosition(touch.clientX, touch.clientY);
+                        break;
+                    }
+                }
+            });
+            
+            // Touch end and cancel events
+            const endTouch = (event) => {
+                event.preventDefault();
+                
+                // Check if our tracked touch has ended
+                let touchFound = false;
+                for (let i = 0; i < event.touches.length; i++) {
+                    if (event.touches[i].identifier === joystickTouchId) {
+                        touchFound = true;
+                        break;
+                    }
+                }
+                
+                if (!touchFound) {
+                    joystickActive = false;
+                    joystickTouchId = null;
+                    resetJoystickKnob();
+                    
+                    // Reset movement
+                    moveForward = false;
+                    moveBackward = false;
+                    moveLeft = false;
+                    moveRight = false;
+                }
+            };
+            
+            joystickElement.addEventListener('touchend', endTouch);
+            joystickElement.addEventListener('touchcancel', endTouch);
+            
+            // Update joystick on window resize
+            window.addEventListener('resize', () => {
+                const rect = joystickElement.getBoundingClientRect();
+                joystickCenterX = rect.left + rect.width / 2;
+                joystickCenterY = rect.top + rect.height / 2;
+                resetJoystickKnob();
+            });
+            
+            // No need to recalculate here as we already did it above
+        }
+        
+        function updateJoystickPosition(touchX, touchY) {
+            // Calculate distance from center
+            const deltaX = touchX - joystickCenterX;
+            const deltaY = touchY - joystickCenterY;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            
+            // Get joystick radius (half the width)
+            const joystickRadius = joystickElement.offsetWidth / 2;
+            const knobRadius = joystickKnob.offsetWidth / 2;
+            
+            // Limit knob position to joystick boundaries
+            const maxDistance = joystickRadius - knobRadius;
+            
+            if (distance > maxDistance) {
+                // Normalize and scale to max distance
+                const angle = Math.atan2(deltaY, deltaX);
+                joystickX = Math.cos(angle) * maxDistance;
+                joystickY = Math.sin(angle) * maxDistance;
+            } else {
+                joystickX = deltaX;
+                joystickY = deltaY;
+            }
+            
+            // Update knob position
+            joystickKnob.style.transform = `translate(calc(-50% + ${joystickX}px), calc(-50% + ${joystickY}px))`;
+            
+            // Determine movement direction based on joystick position
+            // Normalize joystick values to -1 to 1 range
+            const normalizedX = joystickX / maxDistance;
+            const normalizedY = joystickY / maxDistance;
+            
+            // Set movement flags based on joystick position
+            // Use a small deadzone to prevent accidental movement
+            const deadzone = 0.3;
+            moveForward = normalizedY < -deadzone;
+            moveBackward = normalizedY > deadzone;
+            moveLeft = normalizedX < -deadzone;
+            moveRight = normalizedX > deadzone;
+        }
+        
+        function resetJoystickKnob() {
+            joystickX = 0;
+            joystickY = 0;
+            joystickKnob.style.transform = 'translate(-50%, -50%)';
+        }
+        
+        // Initialize joystick
+        setupJoystick();
+
+        // Add keyboard controls
+        document.addEventListener('keydown', (event) => {
+            if (isOverlayActive) return;
+            
+            switch (event.code) {
+                case 'KeyW':
+                case 'ArrowUp':
+                    moveForward = true;
+                    break;
+                case 'KeyS':
+                case 'ArrowDown':
+                    moveBackward = true;
+                    break;
+                case 'KeyA':
+                case 'ArrowLeft':
+                    moveLeft = true;
+                    break;
+                case 'KeyD':
+                case 'ArrowRight':
+                    moveRight = true;
+                    break;
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            switch (event.code) {
+                case 'KeyW':
+                case 'ArrowUp':
+                    moveForward = false;
+                    break;
+                case 'KeyS':
+                case 'ArrowDown':
+                    moveBackward = false;
+                    break;
+                case 'KeyA':
+                case 'ArrowLeft':
+                    moveLeft = false;
+                    break;
+                case 'KeyD':
+                case 'ArrowRight':
+                    moveRight = false;
+                    break;
+            }
+        });
+
         // Add click-based movement
         renderer.domElement.addEventListener('mousedown', (event) => {
-            if (isOverlayActive) return;
+            // Skip if overlay is active or if clicked on joystick (for mobile)
+            if (isOverlayActive || 
+                (event.target === joystickElement || event.target === joystickKnob)) return;
+            
             isMouseDown = true;
             mouseX = event.clientX;
             mouseY = event.clientY;
@@ -300,10 +766,11 @@
             const dx = event.clientX - centerX;
             const dy = event.clientY - centerY;
             
-            moveForward = dy < -10;
-            moveBackward = dy > 10;
-            moveLeft = dx < -10;
-            moveRight = dx > 10;
+            // Apply sensitivity and threshold for less sensitive controls
+            moveForward = dy < -MOVEMENT_THRESHOLD;
+            moveBackward = dy > MOVEMENT_THRESHOLD;
+            moveLeft = dx < -MOVEMENT_THRESHOLD;
+            moveRight = dx > MOVEMENT_THRESHOLD;
         });
 
         renderer.domElement.addEventListener('mouseup', () => {
@@ -324,7 +791,10 @@
 
         // Add touch support for mobile
         renderer.domElement.addEventListener('touchstart', (event) => {
-            if (isOverlayActive) return;
+            // Skip if overlay is active or if touched on joystick
+            if (isOverlayActive || 
+                (event.target === joystickElement || event.target === joystickKnob)) return;
+                
             event.preventDefault();
             isMouseDown = true;
             mouseX = event.touches[0].clientX;
@@ -342,10 +812,11 @@
             const dx = event.touches[0].clientX - centerX;
             const dy = event.touches[0].clientY - centerY;
             
-            moveForward = dy < -10;
-            moveBackward = dy > 10;
-            moveLeft = dx < -10;
-            moveRight = dx > 10;
+            // Apply sensitivity and threshold for less sensitive controls
+            moveForward = dy < -MOVEMENT_THRESHOLD;
+            moveBackward = dy > MOVEMENT_THRESHOLD;
+            moveLeft = dx < -MOVEMENT_THRESHOLD;
+            moveRight = dx > MOVEMENT_THRESHOLD;
         });
 
         renderer.domElement.addEventListener('touchend', () => {
@@ -407,9 +878,10 @@
                 this.direction.x = Number(moveLeft) - Number(moveRight);
                 this.direction.normalize();
 
-                const speed = 5;
-                if (moveForward || moveBackward) this.velocity.z = this.direction.z * speed * delta;
-                if (moveLeft || moveRight) this.velocity.x = this.direction.x * speed * delta;
+                // Apply movement sensitivity
+                const speed = MOVEMENT_SPEED;
+                if (moveForward || moveBackward) this.velocity.z = this.direction.z * speed * delta * MOVEMENT_SENSITIVITY;
+                if (moveLeft || moveRight) this.velocity.x = this.direction.x * speed * delta * MOVEMENT_SENSITIVITY;
 
                 // Get camera's horizontal rotation
                 const cameraDirection = new THREE.Vector3();
