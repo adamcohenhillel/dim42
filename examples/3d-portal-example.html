@@ -82,459 +82,214 @@
     <script type="module">
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { FontLoader } from 'three/addons/loaders/FontLoader.js';
-        import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+        import { Portal, initPortalSystem } from '../js/Portal.js';
 
-        // Make THREE available globally for the portal component
-        window.THREE = THREE;
+        // Scene setup
+        const scene = new THREE.Scene();
         
-        // Import our portal component
-        import('./embed/3d-portal-embed.js').then((module) => {
-            // Override the Dim42Portal class to make it more sensitive
-            const originalDim42Portal = window.Dim42Portal;
-            
-            window.Dim42Portal = class EnhancedDim42Portal extends originalDim42Portal {
-                constructor(scene, position, rotation, title, url, color = 0x00ff77, options = {}) {
-                    super(scene, position, rotation, title, url, color, options);
-                    // Increase collision sensitivity
-                    this.collisionThreshold = options.collisionThreshold || 5.0; // Increased from default
-                    this.lastActivationTime = 0;
-                    this.activationCooldown = 300; // Reduced cooldown (milliseconds)
-                    this.isOverlayActive = false; // Track overlay state
-                    
-                    // Create enhanced visual effects
-                    this.createEnhancedEffects();
-                }
-                
-                createEnhancedEffects() {
-                    // Add a light to make the portal more visible
-                    this.portalLight = new THREE.PointLight(this.color, 1.5, 15);
-                    this.portalLight.position.copy(this.position);
-                    this.scene.add(this.portalLight);
-                    
-                    // Add a larger outer glow
-                    const glowGeometry = new THREE.TorusGeometry(2.5 * this.options.size, 0.3 * this.options.size, 32, 100);
-                    const glowMaterial = new THREE.MeshBasicMaterial({
-                        color: this.color,
-                        transparent: true,
-                        opacity: 0.4,
-                        side: THREE.DoubleSide
-                    });
-                    this.glowRing = new THREE.Mesh(glowGeometry, glowMaterial);
-                    this.glowRing.position.copy(this.position);
-                    this.glowRing.rotation.copy(this.rotation);
-                    this.scene.add(this.glowRing);
-                    
-                    // Add a second glow ring for more effect
-                    const glowGeometry2 = new THREE.TorusGeometry(3.0 * this.options.size, 0.2 * this.options.size, 32, 100);
-                    const glowMaterial2 = new THREE.MeshBasicMaterial({
-                        color: this.color,
-                        transparent: true,
-                        opacity: 0.2,
-                        side: THREE.DoubleSide
-                    });
-                    this.glowRing2 = new THREE.Mesh(glowGeometry2, glowMaterial2);
-                    this.glowRing2.position.copy(this.position);
-                    this.glowRing2.rotation.copy(this.rotation);
-                    this.scene.add(this.glowRing2);
-                    
-                    // Add ambient particles around the portal
-                    this.ambientParticles = [];
-                    for (let i = 0; i < 30; i++) {
-                        const particleGeometry = new THREE.SphereGeometry(0.05 * this.options.size, 8, 8);
-                        const particleMaterial = new THREE.MeshBasicMaterial({
-                            color: this.color,
-                            transparent: true,
-                            opacity: 0.7
-                        });
-                        const particle = new THREE.Mesh(particleGeometry, particleMaterial);
-                        
-                        // Random position around the portal
-                        const angle = Math.random() * Math.PI * 2;
-                        const radius = (2.5 + Math.random() * 2) * this.options.size;
-                        particle.position.set(
-                            this.position.x + Math.cos(angle) * radius,
-                            this.position.y + Math.sin(angle) * radius,
-                            this.position.z + (Math.random() - 0.5) * 2
-                        );
-                        
-                        // Add random movement data
-                        particle.userData = {
-                            speed: 0.01 + Math.random() * 0.03,
-                            angle: Math.random() * Math.PI * 2,
-                            radius: radius,
-                            ySpeed: (Math.random() - 0.5) * 0.02,
-                            originalY: particle.position.y
-                        };
-                        
-                        this.scene.add(particle);
-                        this.ambientParticles.push(particle);
-                    }
-                }
-                
-                update(delta) {
-                    super.update(delta);
-                    
-                    // Update enhanced effects
-                    if (this.portalLight) {
-                        const intensity = 0.7 + Math.sin(Date.now() * 0.005) * 0.3;
-                        this.portalLight.intensity = intensity * 1.5;
-                    }
-                    
-                    if (this.glowRing) {
-                        this.glowRing.rotation.z += 0.01;
-                        const scale = 1 + Math.sin(Date.now() * 0.003) * 0.1;
-                        this.glowRing.scale.set(scale, scale, scale);
-                    }
-                    
-                    if (this.glowRing2) {
-                        this.glowRing2.rotation.z -= 0.005; // Rotate in opposite direction
-                        const scale = 1 + Math.sin(Date.now() * 0.002) * 0.15;
-                        this.glowRing2.scale.set(scale, scale, scale);
-                    }
-                    
-                    // Update ambient particles
-                    if (this.ambientParticles) {
-                        this.ambientParticles.forEach(particle => {
-                            // Update angle
-                            particle.userData.angle += particle.userData.speed;
-                            
-                            // Calculate new position
-                            particle.position.x = this.position.x + Math.cos(particle.userData.angle) * particle.userData.radius;
-                            particle.position.z = this.position.z + Math.sin(particle.userData.angle) * particle.userData.radius;
-                            
-                            // Add some vertical movement
-                            particle.position.y = particle.userData.originalY + Math.sin(Date.now() * 0.001 + particle.userData.angle) * 0.5;
-                            
-                            // Pulse opacity
-                            particle.material.opacity = 0.4 + Math.sin(Date.now() * 0.003 + particle.userData.angle * 2) * 0.3;
-                        });
-                    }
-                }
-                
-                checkCollision(position) {
-                    // Skip collision check if overlay is active
-                    if (this.isOverlayActive) return;
-                    
-                    const distance = position.distanceTo(this.position);
-                    const portalIndicator = document.getElementById('portal-indicator');
-                    
-                    // Show indicator when near a portal
-                    if (distance < this.collisionThreshold * 1.5) {
-                        portalIndicator.style.display = 'block';
-                        portalIndicator.textContent = `${this.title} portal nearby! Move closer to activate.`;
-                        portalIndicator.style.background = `rgba(${(this.color >> 16) & 255}, ${(this.color >> 8) & 255}, ${this.color & 255}, 0.7)`;
-                        
-                        // Visual feedback - make portal pulse faster when player is close
-                        const pulseSpeed = 0.01 + (1 - distance / (this.collisionThreshold * 1.5)) * 0.05;
-                        const pulseIntensity = 0.3 + (1 - distance / (this.collisionThreshold * 1.5)) * 0.5;
-                        
-                        // Apply enhanced pulse effect to spiral
-                        if (this.spiral) {
-                            const pulse = Math.sin(Date.now() * pulseSpeed) * pulseIntensity + 0.8;
-                            this.spiral.material.opacity = 0.8 * pulse;
-                            this.spiral.material.emissiveIntensity = 0.7 * pulse;
-                            
-                            // Scale the portal slightly based on proximity
-                            const scale = 1 + (1 - distance / (this.collisionThreshold * 1.5)) * 0.2;
-                            this.spiral.scale.set(scale, scale, scale);
-                        }
-                        
-                        // Increase light intensity when close
-                        if (this.portalLight) {
-                            this.portalLight.intensity = 1 + (1 - distance / this.collisionThreshold) * 2;
-                        }
-                    } else {
-                        portalIndicator.style.display = 'none';
-                        
-                        // Reset visual effects
-                        if (this.spiral) {
-                            this.spiral.scale.set(1, 1, 1);
-                        }
-                        
-                        if (this.portalLight) {
-                            this.portalLight.intensity = 1;
-                        }
-                    }
-                    
-                    const now = Date.now();
-                    // Check if we're within activation range and cooldown has passed
-                    if (distance < this.collisionThreshold && now - this.lastActivationTime > this.activationCooldown) {
-                        // Get direction from player to portal
-                        const toPortal = new THREE.Vector3();
-                        toPortal.subVectors(this.position, position).normalize();
-                        
-                        // Get portal's forward direction
-                        const portalNormal = new THREE.Vector3(0, 0, -1);
-                        portalNormal.applyEuler(this.rotation);
-                        
-                        const dot = toPortal.dot(portalNormal);
-                        
-                        // Less strict directional requirement (0.2 instead of 0.5)
-                        if (dot > 0.2) {
-                            this.lastActivationTime = now;
-                            
-                            // Visual feedback on activation
-                            if (this.spiral) {
-                                this.spiral.material.emissiveIntensity = 1.5;
-                            }
-                            
-                            if (this.portalLight) {
-                                this.portalLight.intensity = 3;
-                            }
-                            
-                            // Show overlay instead of direct navigation
-                            setTimeout(() => {
-                                // Add dim_source parameter
-                                let targetUrl = this.url;
-                                const separator = targetUrl.includes('?') ? '&' : '?';
-                                targetUrl += `${separator}dim_source=${encodeURIComponent(window.location.hostname || "example-site")}`;
-                                
-                                // Show overlay and set iframe source
-                                const overlay = document.getElementById('gameOverlay');
-                                const gameFrame = document.getElementById('gameFrame');
-                                gameFrame.src = targetUrl;
-                                overlay.style.display = 'block';
-                                this.isOverlayActive = true;
-                            }, 500); // Short delay for visual feedback
-                        }
-                    }
-                }
-            };
-            
-            init();
+        // Create space background with stars
+        const spaceTexture = new THREE.CubeTextureLoader()
+            .load([
+                'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_px.jpg',
+                'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_nx.jpg',
+                'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_py.jpg',
+                'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_ny.jpg',
+                'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_pz.jpg',
+                'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_nz.jpg'
+            ]);
+        scene.background = spaceTexture;
+        
+        // Add stars
+        function addStar() {
+            const geometry = new THREE.SphereGeometry(0.1, 24, 24);
+            const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const star = new THREE.Mesh(geometry, material);
+            const [x, y, z] = Array(3).fill().map(() => THREE.MathUtils.randFloatSpread(100));
+            star.position.set(x, y, z);
+            scene.add(star);
+        }
+        Array(200).fill().forEach(addStar);
+        
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        // Add lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 5, 5);
+        directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        scene.add(directionalLight);
+        
+        // Add a point light for dramatic effect
+        const pointLight = new THREE.PointLight(0x00ff77, 1, 20);
+        pointLight.position.set(0, 5, 0);
+        scene.add(pointLight);
+        
+        // Add a floor
+        const floorGeometry = new THREE.CylinderGeometry(10, 10, 0.5, 32);
+        const floorMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x333333,
+            roughness: 0.8,
+            metalness: 0.5
+        });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.position.y = -0.25;
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        // Simple player setup
+        const player = {
+            position: new THREE.Vector3(0, 1, 5),
+            velocity: new THREE.Vector3(),
+            direction: new THREE.Vector3(),
+            moveSpeed: 5,
+            moveForward: false,
+            moveBackward: false,
+            moveLeft: false,
+            moveRight: false
+        };
+
+        // Camera setup
+        camera.position.copy(player.position);
+        
+        // Controls
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxPolarAngle = Math.PI / 1.5;
+        controls.minDistance = 0;
+        controls.maxDistance = 0;
+        controls.enablePan = false;
+
+        // Add keyboard controls
+        document.addEventListener('keydown', (event) => {
+            switch (event.code) {
+                case 'KeyW':
+                case 'ArrowUp':
+                    player.moveForward = true;
+                    break;
+                case 'KeyS':
+                case 'ArrowDown':
+                    player.moveBackward = true;
+                    break;
+                case 'KeyA':
+                case 'ArrowLeft':
+                    player.moveLeft = true;
+                    break;
+                case 'KeyD':
+                case 'ArrowRight':
+                    player.moveRight = true;
+                    break;
+            }
         });
 
-        function init() {
-            // Scene setup
-            const scene = new THREE.Scene();
-            
-            // Create space background with stars
-            const spaceTexture = new THREE.CubeTextureLoader()
-                .load([
-                    'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_px.jpg',
-                    'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_nx.jpg',
-                    'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_py.jpg',
-                    'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_ny.jpg',
-                    'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_pz.jpg',
-                    'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_nz.jpg'
-                ]);
-            scene.background = spaceTexture;
-            
-            // Add stars
-            function addStar() {
-                const geometry = new THREE.SphereGeometry(0.1, 24, 24);
-                const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
-                const star = new THREE.Mesh(geometry, material);
-
-                const [x, y, z] = Array(3).fill().map(() => THREE.MathUtils.randFloatSpread(100));
-                star.position.set(x, y, z);
-                scene.add(star);
+        document.addEventListener('keyup', (event) => {
+            switch (event.code) {
+                case 'KeyW':
+                case 'ArrowUp':
+                    player.moveForward = false;
+                    break;
+                case 'KeyS':
+                case 'ArrowDown':
+                    player.moveBackward = false;
+                    break;
+                case 'KeyA':
+                case 'ArrowLeft':
+                    player.moveLeft = false;
+                    break;
+                case 'KeyD':
+                case 'ArrowRight':
+                    player.moveRight = false;
+                    break;
             }
-            Array(200).fill().forEach(addStar);
-            
-            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            const renderer = new THREE.WebGLRenderer({ antialias: true });
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.shadowMap.enabled = true;
-            document.body.appendChild(renderer.domElement);
+        });
 
-            // Add lights
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-            scene.add(ambientLight);
-            
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-            directionalLight.position.set(5, 5, 5);
-            directionalLight.castShadow = true;
-            directionalLight.shadow.mapSize.width = 2048;
-            directionalLight.shadow.mapSize.height = 2048;
-            scene.add(directionalLight);
-            
-            // Add a point light for dramatic effect
-            const pointLight = new THREE.PointLight(0x00ff77, 1, 20);
-            pointLight.position.set(0, 5, 0);
-            scene.add(pointLight);
-            
-            // Add a floor
-            const floorGeometry = new THREE.CylinderGeometry(10, 10, 0.5, 32);
-            const floorMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x333333,
-                roughness: 0.8,
-                metalness: 0.5
-            });
-            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-            floor.position.y = -0.25; // Half the height
-            floor.receiveShadow = true;
-            scene.add(floor);
+        // Initialize portal system
+        initPortalSystem();
 
-            // Simple player setup
-            const player = {
-                position: new THREE.Vector3(0, 1, 5),
-                velocity: new THREE.Vector3(),
-                direction: new THREE.Vector3(),
-                moveSpeed: 5,
-                moveForward: false,
-                moveBackward: false,
-                moveLeft: false,
-                moveRight: false
-            };
+        // Create a portal to Dim42
+        const portal = new Portal(
+            new THREE.Vector3(0, 1, 0), // Center position
+            new THREE.Euler(0, 0, 0), // Facing forward
+            "Enter Dim42",
+            "https://dim42.com",
+            0x00ff77, // Green color
+            1.2, // Size multiplier
+            scene
+        );
 
-            // Camera setup
-            camera.position.copy(player.position);
+        const clock = new THREE.Clock();
+
+        function updatePlayerMovement(delta) {
+            // Calculate movement direction based on camera orientation
+            const cameraDirection = new THREE.Vector3();
+            camera.getWorldDirection(cameraDirection);
+            const cameraAngle = Math.atan2(cameraDirection.x, cameraDirection.z);
             
-            // Controls
-            const controls = new OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
-            controls.maxPolarAngle = Math.PI / 1.5;
-            controls.minDistance = 0;
-            controls.maxDistance = 0;
-            controls.enablePan = false;
-
-            // Add keyboard controls
-            document.addEventListener('keydown', (event) => {
-                switch (event.code) {
-                    case 'KeyW':
-                    case 'ArrowUp':
-                        player.moveForward = true;
-                        break;
-                    case 'KeyS':
-                    case 'ArrowDown':
-                        player.moveBackward = true;
-                        break;
-                    case 'KeyA':
-                    case 'ArrowLeft':
-                        player.moveLeft = true;
-                        break;
-                    case 'KeyD':
-                    case 'ArrowRight':
-                        player.moveRight = true;
-                        break;
+            // Reset velocity
+            player.velocity.set(0, 0, 0);
+            
+            // Set direction based on keys
+            player.direction.z = Number(player.moveForward) - Number(player.moveBackward);
+            player.direction.x = Number(player.moveLeft) - Number(player.moveRight);
+            player.direction.normalize();
+            
+            // Apply movement relative to camera direction
+            if (player.direction.length() > 0) {
+                // Calculate forward/backward movement
+                if (player.moveForward || player.moveBackward) {
+                    player.velocity.x += Math.sin(cameraAngle) * player.direction.z * player.moveSpeed;
+                    player.velocity.z += Math.cos(cameraAngle) * player.direction.z * player.moveSpeed;
                 }
-            });
-
-            document.addEventListener('keyup', (event) => {
-                switch (event.code) {
-                    case 'KeyW':
-                    case 'ArrowUp':
-                        player.moveForward = false;
-                        break;
-                    case 'KeyS':
-                    case 'ArrowDown':
-                        player.moveBackward = false;
-                        break;
-                    case 'KeyA':
-                    case 'ArrowLeft':
-                        player.moveLeft = false;
-                        break;
-                    case 'KeyD':
-                    case 'ArrowRight':
-                        player.moveRight = false;
-                        break;
+                
+                // Calculate left/right movement
+                if (player.moveLeft || player.moveRight) {
+                    player.velocity.x += Math.sin(cameraAngle + Math.PI/2) * player.direction.x * player.moveSpeed;
+                    player.velocity.z += Math.cos(cameraAngle + Math.PI/2) * player.direction.x * player.moveSpeed;
                 }
-            });
+                
+                // Apply movement
+                player.position.x += player.velocity.x * delta;
+                player.position.z += player.velocity.z * delta;
+            }
+        }
 
-            // Handle window resize
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
 
-            // Create a portal to Dim42
-            const portal = new Dim42Portal(
-                scene,
-                new THREE.Vector3(0, 1, 0), // Center position
-                new THREE.Euler(0, 0, 0), // Facing forward
-                "Enter Dim42",
-                "https://dim42.com",
-                0x00ff77, // Green color
-                { 
-                    size: 1.2, // Slightly larger
-                    collisionThreshold: 5.0,
-                    addParticles: true, // Add particle effects
-                    addGlow: true // Add glow effect
-                }
-            );
-
-            const clock = new THREE.Clock();
-
-            // Animation loop
-            function animate() {
-                requestAnimationFrame(animate);
-                const delta = clock.getDelta();
-
-                // Update player movement
+            if (!window.isOverlayActive) {
                 updatePlayerMovement(delta);
+                controls.update();
                 
                 // Update camera position to follow player
                 camera.position.copy(player.position);
                 controls.target.copy(player.position).add(new THREE.Vector3(0, 0, -1));
                 
-                // Update controls
-                controls.update();
-                
-                // Update portal animations
-                portal.update(delta);
-                
-                // Check portal collisions
-                portal.checkCollision(player.position);
-                
-                renderer.render(scene, camera);
+                // Update portal and check for collisions
+                portal.update();
+                portal.checkCollision(player.position, window.isOverlayActive, window.lastOverlayCloseTime, window.OVERLAY_COOLDOWN);
             }
-
-            function updatePlayerMovement(delta) {
-                // Calculate movement direction based on camera orientation
-                const cameraDirection = new THREE.Vector3();
-                camera.getWorldDirection(cameraDirection);
-                const cameraAngle = Math.atan2(cameraDirection.x, cameraDirection.z);
-                
-                // Reset velocity
-                player.velocity.set(0, 0, 0);
-                
-                // Set direction based on keys
-                player.direction.z = Number(player.moveForward) - Number(player.moveBackward);
-                player.direction.x = Number(player.moveLeft) - Number(player.moveRight);
-                player.direction.normalize();
-                
-                // Apply movement relative to camera direction
-                if (player.direction.length() > 0) {
-                    // Calculate forward/backward movement
-                    if (player.moveForward || player.moveBackward) {
-                        player.velocity.x += Math.sin(cameraAngle) * player.direction.z * player.moveSpeed;
-                        player.velocity.z += Math.cos(cameraAngle) * player.direction.z * player.moveSpeed;
-                    }
-                    
-                    // Calculate left/right movement
-                    if (player.moveLeft || player.moveRight) {
-                        player.velocity.x += Math.sin(cameraAngle + Math.PI/2) * player.direction.x * player.moveSpeed;
-                        player.velocity.z += Math.cos(cameraAngle + Math.PI/2) * player.direction.x * player.moveSpeed;
-                    }
-                    
-                    // Apply movement
-                    player.position.x += player.velocity.x * delta;
-                    player.position.z += player.velocity.z * delta;
-                }
-            }
-
-            // Add overlay button event listeners
-            const overlay = document.getElementById('gameOverlay');
-            const gameFrame = document.getElementById('gameFrame');
-            const closeOverlayBtn = document.getElementById('closeOverlay');
-            const openNewTabBtn = document.getElementById('openNewTab');
             
-            closeOverlayBtn.addEventListener('click', () => {
-                overlay.style.display = 'none';
-                gameFrame.src = '';
-                portal.isOverlayActive = false;
-            });
-            
-            openNewTabBtn.addEventListener('click', () => {
-                window.open(gameFrame.src, '_blank');
-            });
-
-            animate();
+            renderer.render(scene, camera);
         }
+
+        animate();
     </script>
 </body>
 </html> 

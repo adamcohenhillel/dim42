@@ -27,346 +27,6 @@
             text-align: center;
             pointer-events: none;
         }
-        #movementJoystick {
-            position: fixed;
-            bottom: 40px;
-            left: 40px;
-            width: 150px;
-            height: 150px;
-            background: rgba(0, 255, 119, 0.2);
-            border: 2px solid rgba(0, 255, 119, 0.5);
-            border-radius: 50%;
-            display: block;
-            z-index: 1000;
-        }
-        #heightJoystick {
-            position: fixed;
-            bottom: 40px;
-            right: 40px;
-            width: 150px;
-            height: 150px;
-            background: rgba(0, 255, 119, 0.2);
-            border: 2px solid rgba(0, 255, 119, 0.5);
-            border-radius: 50%;
-            display: block;
-            z-index: 1000;
-        }
-        /* New overlay styles */
-        #gameOverlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 2000;
-            overflow: hidden; /* Prevent scrolling */
-        }
-        #gameFrame {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%;
-            height: 90%;
-            border: none;
-            border-radius: 10px;
-            background: white;
-        }
-        #closeOverlay {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #00ff77;
-            color: black;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            z-index: 2001;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: background-color 0.2s ease;
-        }
-        #openNewTab {
-            position: absolute;
-            top: 80px; /* Position below the close button */
-            right: 20px;
-            background: #00ff77;
-            color: black;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            z-index: 2001;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: background-color 0.2s ease;
-        }
-        .button-content {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap;
-        }
-        .portal-logo {
-            width: 24px;
-            height: 24px;
-            object-fit: contain;
-            filter: brightness(0) invert(1); /* Make icons white */
-        }
-        #closeOverlay:hover, #openNewTab:hover {
-            background: #00cc77;
-        }
-
-        /* Mobile-friendly adjustments for game overlay */
-        @media (max-width: 768px) {
-            #closeOverlay, #openNewTab {
-                padding: 12px 15px;
-                font-size: 14px;
-                width: auto;
-                max-width: 150px;
-            }
-            
-            #gameFrame {
-                width: 95%;
-                height: 85%; /* Smaller height to make room for buttons */
-                top: 55%; /* Move down slightly to make room for buttons */
-            }
-        }
-        
-        /* Even smaller screens */
-        @media (max-width: 480px) {
-            #closeOverlay, #openNewTab {
-                padding: 15px;
-                font-size: 16px;
-                right: 10px;
-                width: auto;
-                max-width: 140px;
-            }
-            
-            .portal-logo {
-                width: 20px;
-                height: 20px;
-                filter: brightness(0) invert(1); /* Make icons white */
-            }
-            
-            /* Stack buttons vertically on very small screens */
-            #openNewTab {
-                top: 70px;          /* Position below the close button */
-                right: 10px;        /* Align with close button */
-            }
-            
-            #gameFrame {
-                width: 100%;
-                height: 80%;
-                border-radius: 0; /* Remove border radius on small screens */
-            }
-            
-            /* Improved mobile styling for intro overlay */
-            #introContent {
-                padding: 20px;
-                width: 90%;
-                max-width: 100%;
-            }
-            
-            #introLogo {
-                width: 80px;
-                height: 80px;
-            }
-            
-            #introTitle {
-                font-size: 24px;
-            }
-            
-            #introDescription {
-                font-size: 16px;
-            }
-            
-            #introInstructions {
-                padding: 10px;
-            }
-            
-            #introInstructions li {
-                font-size: 14px;
-                margin-bottom: 6px;
-            }
-            
-            .intro-button {
-                width: 100%;
-                padding: 15px;
-                font-size: 16px;
-                max-width: 250px;
-            }
-            
-            .intro-button .portal-logo {
-                width: 24px;
-                height: 24px;
-            }
-        }
-
-        /* Intro overlay styles */
-        #introOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 3000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-family: Arial, sans-serif;
-            overflow-y: auto; /* Allow scrolling on small screens */
-            padding: 20px; /* Add padding for small screens */
-        }
-        
-        #introContent {
-            max-width: 600px;
-            text-align: center;
-            padding: 30px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 15px;
-            border: 2px solid #00ff77;
-            box-shadow: 0 0 20px rgba(0, 255, 119, 0.5);
-            margin: auto; /* Center vertically when scrolling */
-        }
-        
-        #introLogo {
-            width: 120px;
-            height: 120px;
-            margin-bottom: 20px;
-            filter: drop-shadow(0 0 10px rgba(0, 255, 119, 0.7));
-        }
-        
-        #introTitle {
-            font-size: 36px;
-            margin-bottom: 15px;
-            color: #00ff77;
-            text-shadow: 0 0 10px rgba(0, 255, 119, 0.5);
-        }
-        
-        #introDescription {
-            font-size: 18px;
-            line-height: 1.6;
-            margin-bottom: 25px;
-        }
-        
-        #introInstructions {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            border-left: 3px solid #00ff77;
-        }
-        
-        #introInstructions h3 {
-            color: #00ff77;
-            margin-top: 0;
-            margin-bottom: 10px;
-        }
-        
-        #introInstructions ul {
-            text-align: left;
-            margin: 0;
-            padding-left: 20px;
-        }
-        
-        #introInstructions li {
-            margin-bottom: 8px;
-        }
-        
-        #introButtons {
-            display: flex;
-            flex-direction: column; /* Stack buttons vertically by default */
-            gap: 15px;
-            justify-content: center;
-            align-items: center; /* Center buttons */
-        }
-        
-        .intro-button {
-            background: #00ff77;
-            color: black;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: all 0.2s ease;
-            min-width: 200px; /* Ensure buttons have a minimum width */
-            display: flex;
-            justify-content: center;
-            align-items: center; /* Center content vertically */
-            width: 100%; /* Full width */
-            max-width: 300px; /* Maximum width */
-        }
-        
-        .intro-button .button-content {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        .intro-button:hover {
-            background: #00cc77;
-            transform: scale(1.05);
-        }
-        
-        #submitPortalBtn {
-            background: #ff5722;
-        }
-        
-        #submitPortalBtn:hover {
-            background: #e64a19;
-        }
-
-        /* Mobile styles */
-        @media (max-width: 768px) {
-            #closeOverlay, #openNewTab {
-                padding: 15px 20px;  /* Larger padding on mobile */
-                font-size: 18px;     /* Larger font on mobile */
-            }
-            
-            .portal-logo {
-                width: 32px;         /* Larger logo on mobile */
-                height: 32px;
-                filter: brightness(0) invert(1); /* Make icons white */
-            }
-            
-            #openNewTab {
-                right: 200px;        /* More space between buttons on mobile */
-            }
-            
-            #introContent {
-                width: 90%;
-                padding: 20px;
-            }
-            
-            #introTitle {
-                font-size: 28px;
-            }
-            
-            #introDescription {
-                font-size: 16px;
-            }
-            
-            .intro-button {
-                padding: 15px 20px;
-                font-size: 18px;
-            }
-        }
-
-        /* Virtual joystick styles */
         #virtualJoystick {
             position: fixed;
             bottom: 40px;
@@ -376,12 +36,11 @@
             background: rgba(0, 255, 119, 0.3);
             border: 4px solid rgba(0, 255, 119, 0.8);
             border-radius: 50%;
-            display: block; /* Always visible */
+            display: block;
             z-index: 1000;
             touch-action: none;
             box-shadow: 0 0 20px rgba(0, 255, 119, 0.6);
         }
-        
         #joystickKnob {
             position: absolute;
             top: 50%;
@@ -395,52 +54,15 @@
             pointer-events: none;
             box-shadow: 0 0 15px rgba(0, 255, 119, 0.8);
         }
-        
-        /* Make joystick even larger on mobile devices */
         @media (max-width: 768px) {
             #virtualJoystick {
                 width: 220px;
                 height: 220px;
             }
-            
             #joystickKnob {
                 width: 100px;
                 height: 100px;
             }
-        }
-
-        #dimNotification {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 136, 255, 0.9);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 10px;
-            font-family: 'Roboto', sans-serif;
-            font-size: 16px;
-            z-index: 1000;
-            display: none;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            max-width: 90%;
-        }
-        
-        #dimNotification button {
-            background-color: white;
-            color: #0088ff;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            margin-top: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        
-        #dimNotification button:hover {
-            background-color: #f0f0f0;
         }
     </style>
 </head>
@@ -453,68 +75,6 @@
     <!-- Virtual Joystick for Mobile -->
     <div id="virtualJoystick">
         <div id="joystickKnob"></div>
-    </div>
-    
-    <!-- Intro Overlay -->
-    <div id="introOverlay">
-        <div id="introContent">
-            <img src="assets/portallogo1.png" alt="Dim42 Logo" id="introLogo" style="max-width: 90%; height: auto;">
-            <h1 id="introTitle" style="font-size: max(24px, 4vw);">Welcome to Dim42</h1>
-            <p id="introDescription" style="font-size: max(16px, 2.5vw); padding: 0 20px;">
-                Explore a multiverse of games through Rick and Morty-style portals. 
-                Walk up to any portal to enter a different game dimension!
-            </p>
-            
-            <div id="introInstructions" style="padding: 0 20px;">
-                <h3 style="font-size: max(20px, 3vw);">How to Navigate:</h3>
-                <ul style="font-size: max(14px, 2vw); padding-left: 20px;">
-                    <li>Click/touch and drag to move around</li>
-                    <li>Mouse/swipe to look around</li>
-                    <li>Walk into a portal to play that game</li>
-                    <li>Close the game to return to Dim42</li>
-                    <li>Use WASD or Arrow keys to move</li>
-                    <li>On mobile, use the virtual joystick in the bottom right</li>
-                </ul>
-            </div>
-            
-            <div id="introButtons" style="display: flex; flex-direction: column; gap: 15px; align-items: center; width: 100%;">
-                <button id="startExploringBtn" class="intro-button" style="width: 80%; padding: 15px; font-size: max(20px, 2.5vw);">
-                    <div class="button-content">
-                        <img src="assets/portallogo1.png" alt="Portal Logo" class="portal-logo" style="width: max(25px, 3vw); height: max(25px, 3vw);">
-                        <span>ENTER DIM42</span>
-                    </div>
-                </button>
-                <button id="submitPortalBtn" class="intro-button" style="width: 60%; padding: 12px; font-size: max(16px, 2vw);">
-                    <div class="button-content">
-                        <img src="assets/portallogo1.png" alt="Portal Logo" class="portal-logo" style="width: max(20px, 2.5vw); height: max(20px, 2.5vw);">
-                        <span>Submit New Portal</span>
-                    </div>
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <div id="gameOverlay">
-        <div style="display: flex; justify-content: space-between; padding: 10px 20px; width: 100%;">
-            <button id="closeOverlay" style="font-size: max(16px, 2.5vw); padding: 10px 20px;">
-                <div class="button-content">
-                    <img src="assets/back.png" alt="Back Icon" class="portal-logo" style="filter: brightness(0); width: max(20px, 3vw); height: max(20px, 3vw);">
-                    <span>Back to Dim42</span>
-                </div>
-            </button>
-            <button id="openNewTab" style="font-size: max(16px, 2.5vw); padding: 10px 20px;">
-                <div class="button-content">
-                    <img src="assets/newtab.png" alt="New Tab Icon" class="portal-logo" style="filter: brightness(0); width: max(20px, 3vw); height: max(20px, 3vw);">
-                    <span>Open in New Tab</span>
-                </div>
-            </button>
-        </div>
-        <iframe id="gameFrame" allowfullscreen style="width: 95%; height: 90%; margin: auto;"></iframe>
-    </div>
-
-    <div id="dimNotification">
-        <div id="dimMessage"></div>
-        <button id="dimCloseBtn">Close</button>
     </div>
 
     <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
@@ -529,9 +89,9 @@
     <script type="module">
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
-        import { FontLoader } from 'three/addons/loaders/FontLoader.js';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { Portal, initPortalSystem, checkDimSource } from './js/Portal.js';
+        import portalConfigs from './js/portalConfigs.js';
 
         // Scene setup
         const scene = new THREE.Scene();
@@ -562,7 +122,6 @@
             const geometry = new THREE.SphereGeometry(0.1, 24, 24);
             const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
             const star = new THREE.Mesh(geometry, material);
-
             const [x, y, z] = Array(3).fill().map(() => THREE.MathUtils.randFloatSpread(100));
             star.position.set(x, y, z);
             scene.add(star);
@@ -575,15 +134,15 @@
         controls.dampingFactor = 0.05;
         controls.maxPolarAngle = Math.PI / 2.1;
         controls.minPolarAngle = Math.PI / 2.2;
-        controls.maxDistance = 3;               // Closer camera
+        controls.maxDistance = 3;
         controls.minDistance = 3;               
-        controls.target.set(0, 0.5, 0);        // Lower target point
+        controls.target.set(0, 0.5, 0);
         controls.enablePan = false;
         controls.enableZoom = false;
         controls.rotateSpeed = 0.5;
 
         // Initial camera position
-        camera.position.set(0, 1.5, 3);        // Lower camera position
+        camera.position.set(0, 1.5, 3);
 
         // Movement variables
         const velocity = new THREE.Vector3();
@@ -597,9 +156,9 @@
         let mouseY = 0;
         
         // Movement settings
-        const MOVEMENT_SENSITIVITY = 0.8; // Increased sensitivity
-        const MOVEMENT_THRESHOLD = 20; // Higher value = less sensitive
-        const MOVEMENT_SPEED = 5; // Increased speed
+        const MOVEMENT_SENSITIVITY = 0.8;
+        const MOVEMENT_THRESHOLD = 20;
+        const MOVEMENT_SPEED = 5;
 
         // Joystick variables
         let joystickActive = false;
@@ -611,214 +170,108 @@
         let joystickX = 0;
         let joystickY = 0;
 
-        // Add overlay state tracking
-        let isOverlayActive = false;
-        let currentGameUrl = '';  // Track current game URL
-        let lastOverlayCloseTime = 0;  // Track when overlay was last closed
-        const OVERLAY_COOLDOWN = 5000;  // 5 seconds cooldown
-        
-        // Add a flag to track if a return portal has been created
-        let returnPortalCreated = false;
-        
-        // Intro overlay handlers
-        document.getElementById('startExploringBtn').addEventListener('click', function() {
-            document.getElementById('introOverlay').style.display = 'none';
-            controls.lock();
-        });
-        
-        document.getElementById('submitPortalBtn').addEventListener('click', function() {
-            window.open('https://forms.gle/Ld5TXTnTmgKSzPJE7', '_blank');
-        });
+        // Initialize portal system
+        initPortalSystem();
 
-        // Modify overlay handlers
-        document.getElementById('closeOverlay').addEventListener('click', () => {
-            const overlay = document.getElementById('gameOverlay');
-            const gameFrame = document.getElementById('gameFrame');
-            overlay.style.display = 'none';
-            gameFrame.src = '';  // Clear the iframe
-            isOverlayActive = false;  // Reset state
-            lastOverlayCloseTime = Date.now();  // Set the close time
-        });
+        // Create Rick character
+        class RickCharacter {
+            constructor() {
+                this.group = new THREE.Group();
+                scene.add(this.group);
+                
+                const debugGeometry = new THREE.BoxGeometry(1, 2, 1);
+                const debugMaterial = new THREE.MeshBasicMaterial({ 
+                    color: 0xff0000,
+                    wireframe: true 
+                });
+                this.debugCube = new THREE.Mesh(debugGeometry, debugMaterial);
+                this.debugCube.position.y = 1;
+                this.group.add(this.debugCube);
+                
+                const loader = new GLTFLoader();
+                loader.load('assets/rick.glb', (gltf) => {
+                    this.model = gltf.scene;
+                    this.model.scale.set(1.5, 1.5, 1.5);
+                    this.model.position.set(0, -3, 0);
+                    this.group.add(this.model);
+                    this.group.remove(this.debugCube);
+                }, 
+                undefined,
+                (error) => {
+                    console.error('Error loading Rick:', error);
+                });
 
-        // Add new tab handler
-        document.getElementById('openNewTab').addEventListener('click', () => {
-            window.open(currentGameUrl, '_blank');
-        });
-
-        // Virtual joystick controls for mobile
-        function setupJoystick() {
-            // Calculate joystick center position
-            const joystickRect = joystickElement.getBoundingClientRect();
-            joystickCenterX = joystickRect.left + joystickRect.width / 2;
-            joystickCenterY = joystickRect.top + joystickRect.height / 2;
-            
-            // Set initial knob position
-            resetJoystickKnob();
-            
-            // Touch start event
-            joystickElement.addEventListener('touchstart', (event) => {
-                if (isOverlayActive) return;
-                event.preventDefault();
-                
-                // Store the touch identifier to track this touch
-                if (!joystickActive) {
-                    const touch = event.touches[0];
-                    joystickTouchId = touch.identifier;
-                    joystickActive = true;
-                    
-                    // Update joystick position
-                    updateJoystickPosition(touch.clientX, touch.clientY);
-                }
-            });
-            
-            // Add mouse support for joystick on desktop
-            joystickElement.addEventListener('mousedown', (event) => {
-                if (isOverlayActive) return;
-                event.preventDefault();
-                
-                joystickActive = true;
-                
-                // Update joystick position
-                updateJoystickPosition(event.clientX, event.clientY);
-                
-                // Add document-level mouse move and up handlers
-                document.addEventListener('mousemove', handleMouseMove);
-                document.addEventListener('mouseup', handleMouseUp);
-            });
-            
-            function handleMouseMove(event) {
-                if (!joystickActive || isOverlayActive) return;
-                event.preventDefault();
-                
-                updateJoystickPosition(event.clientX, event.clientY);
+                this.group.position.set(0, 0, 0);
+                this.velocity = new THREE.Vector3();
+                this.direction = new THREE.Vector3();
             }
-            
-            function handleMouseUp(event) {
-                event.preventDefault();
-                
-                joystickActive = false;
-                resetJoystickKnob();
-                
-                // Reset movement
-                moveForward = false;
-                moveBackward = false;
-                moveLeft = false;
-                moveRight = false;
-                
-                // Remove document-level handlers
-                document.removeEventListener('mousemove', handleMouseMove);
-                document.removeEventListener('mouseup', handleMouseUp);
-            }
-            
-            // Touch move event
-            joystickElement.addEventListener('touchmove', (event) => {
-                if (!joystickActive || isOverlayActive) return;
-                event.preventDefault();
-                
-                // Find our touch among all touches
-                for (let i = 0; i < event.touches.length; i++) {
-                    const touch = event.touches[i];
-                    if (touch.identifier === joystickTouchId) {
-                        updateJoystickPosition(touch.clientX, touch.clientY);
-                        break;
-                    }
-                }
-            });
-            
-            // Touch end and cancel events
-            const endTouch = (event) => {
-                event.preventDefault();
-                
-                // Check if our tracked touch has ended
-                let touchFound = false;
-                for (let i = 0; i < event.touches.length; i++) {
-                    if (event.touches[i].identifier === joystickTouchId) {
-                        touchFound = true;
-                        break;
-                    }
-                }
-                
-                if (!touchFound) {
-                    joystickActive = false;
-                    joystickTouchId = null;
-                    resetJoystickKnob();
-                    
-                    // Reset movement
-                    moveForward = false;
-                    moveBackward = false;
-                    moveLeft = false;
-                    moveRight = false;
-                }
-            };
-            
-            joystickElement.addEventListener('touchend', endTouch);
-            joystickElement.addEventListener('touchcancel', endTouch);
-            
-            
-            // Update joystick on window resize
-            window.addEventListener('resize', () => {
-                const rect = joystickElement.getBoundingClientRect();
-                joystickCenterX = rect.left + rect.width / 2;
-                joystickCenterY = rect.top + rect.height / 2;
-                resetJoystickKnob();
-            });
-            
-            // No need to recalculate here as we already did it above
-        }
-        
-        function updateJoystickPosition(touchX, touchY) {
-            // Calculate distance from center
-            const deltaX = touchX - joystickCenterX;
-            const deltaY = touchY - joystickCenterY;
-            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-            
-            // Get joystick radius (half the width)
-            const joystickRadius = joystickElement.offsetWidth / 2;
-            const knobRadius = joystickKnob.offsetWidth / 2;
-            
-            // Limit knob position to joystick boundaries
-            const maxDistance = joystickRadius - knobRadius;
-            
-            if (distance > maxDistance) {
-                // Normalize and scale to max distance
-                const angle = Math.atan2(deltaY, deltaX);
-                joystickX = Math.cos(angle) * maxDistance;
-                joystickY = Math.sin(angle) * maxDistance;
-            } else {
-                joystickX = deltaX;
-                joystickY = deltaY;
-            }
-            
-            // Update knob position
-            joystickKnob.style.transform = `translate(calc(-50% + ${joystickX}px), calc(-50% + ${joystickY}px))`;
-            
-            // Determine movement direction based on joystick position
-            // Normalize joystick values to -1 to 1 range
-            const normalizedX = joystickX / maxDistance;
-            const normalizedY = joystickY / maxDistance;
-            
-            // Set movement flags based on joystick position
-            // Use a small deadzone to prevent accidental movement
-            const deadzone = 0.3;
-            moveForward = normalizedY < -deadzone;
-            moveBackward = normalizedY > deadzone;
-            moveLeft = normalizedX < -deadzone;
-            moveRight = normalizedX > deadzone;
-        }
-        
-        function resetJoystickKnob() {
-            joystickX = 0;
-            joystickY = 0;
-            joystickKnob.style.transform = 'translate(-50%, -50%)';
-        }
-        
-        // Initialize joystick
-        setupJoystick();
 
-        // Add keyboard controls
+            update(delta) {
+                this.direction.z = Number(moveForward) - Number(moveBackward);
+                this.direction.x = Number(moveLeft) - Number(moveRight);
+                this.direction.normalize();
+
+                const speed = MOVEMENT_SPEED;
+                if (moveForward || moveBackward) this.velocity.z = this.direction.z * speed * delta * MOVEMENT_SENSITIVITY;
+                if (moveLeft || moveRight) this.velocity.x = this.direction.x * speed * delta * MOVEMENT_SENSITIVITY;
+
+                const cameraDirection = new THREE.Vector3();
+                camera.getWorldDirection(cameraDirection);
+                const cameraAngle = Math.atan2(cameraDirection.x, cameraDirection.z);
+
+                if (this.velocity.length() > 0) {
+                    this.group.rotation.y = cameraAngle;
+                    const movement = new THREE.Vector3(this.velocity.x, 0, this.velocity.z);
+                    movement.applyAxisAngle(new THREE.Vector3(0, 1, 0), cameraAngle);
+                    this.group.position.add(movement);
+                }
+
+                controls.target.copy(this.group.position).add(new THREE.Vector3(0, 0.5, 0));
+                this.velocity.set(0, 0, 0);
+            }
+        }
+
+        // Create Rick instance
+        const rick = new RickCharacter();
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 5, 5);
+        directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        scene.add(directionalLight);
+
+        // Create floating platform
+        const platformGeometry = new THREE.CylinderGeometry(5, 5, 0.5, 32);
+        const platformMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x333333,
+            roughness: 0.8,
+            metalness: 0.5
+        });
+        const platform = new THREE.Mesh(platformGeometry, platformMaterial);
+        platform.position.y = -4;
+        scene.add(platform);
+
+        // Create portals from configurations
+        const portals = portalConfigs.map(config => new Portal(
+            config.position,
+            config.rotation,
+            config.title,
+            config.url,
+            config.color,
+            config.sizeMultiplier,
+            scene
+        ));
+
+        // Check for dim source and create return portal if needed
+        const returnPortalCreated = checkDimSource(portals, scene);
+
+        // Movement event listeners
         document.addEventListener('keydown', (event) => {
-            if (isOverlayActive) return;
-            
+            if (window.isOverlayActive) return;
             switch (event.code) {
                 case 'KeyW':
                 case 'ArrowUp':
@@ -860,28 +313,21 @@
             }
         });
 
-        // Add click-based movement
+        // Mouse and touch controls
         renderer.domElement.addEventListener('mousedown', (event) => {
-            // Skip if overlay is active or if clicked on joystick (for mobile)
-            if (isOverlayActive || 
+            if (window.isOverlayActive || 
                 (event.target === joystickElement || event.target === joystickKnob)) return;
-            
             isMouseDown = true;
             mouseX = event.clientX;
             mouseY = event.clientY;
         });
 
         renderer.domElement.addEventListener('mousemove', (event) => {
-            if (!isMouseDown || isOverlayActive) return;
-            
+            if (!isMouseDown || window.isOverlayActive) return;
             const centerX = window.innerWidth / 2;
             const centerY = window.innerHeight / 2;
-            
-            // Calculate direction based on mouse position relative to center
             const dx = event.clientX - centerX;
             const dy = event.clientY - centerY;
-            
-            // Apply sensitivity and threshold for less sensitive controls
             moveForward = dy < -MOVEMENT_THRESHOLD;
             moveBackward = dy > MOVEMENT_THRESHOLD;
             moveLeft = dx < -MOVEMENT_THRESHOLD;
@@ -890,26 +336,17 @@
 
         renderer.domElement.addEventListener('mouseup', () => {
             isMouseDown = false;
-            moveForward = false;
-            moveBackward = false;
-            moveLeft = false;
-            moveRight = false;
+            moveForward = moveBackward = moveLeft = moveRight = false;
         });
 
         renderer.domElement.addEventListener('mouseleave', () => {
             isMouseDown = false;
-            moveForward = false;
-            moveBackward = false;
-            moveLeft = false;
-            moveRight = false;
+            moveForward = moveBackward = moveLeft = moveRight = false;
         });
 
-        // Add touch support for mobile
         renderer.domElement.addEventListener('touchstart', (event) => {
-            // Skip if overlay is active or if touched on joystick
-            if (isOverlayActive || 
+            if (window.isOverlayActive || 
                 (event.target === joystickElement || event.target === joystickKnob)) return;
-                
             event.preventDefault();
             isMouseDown = true;
             mouseX = event.touches[0].clientX;
@@ -917,17 +354,12 @@
         });
 
         renderer.domElement.addEventListener('touchmove', (event) => {
-            if (!isMouseDown || isOverlayActive) return;
+            if (!isMouseDown || window.isOverlayActive) return;
             event.preventDefault();
-            
             const centerX = window.innerWidth / 2;
             const centerY = window.innerHeight / 2;
-            
-            // Calculate direction based on touch position relative to center
             const dx = event.touches[0].clientX - centerX;
             const dy = event.touches[0].clientY - centerY;
-            
-            // Apply sensitivity and threshold for less sensitive controls
             moveForward = dy < -MOVEMENT_THRESHOLD;
             moveBackward = dy > MOVEMENT_THRESHOLD;
             moveLeft = dx < -MOVEMENT_THRESHOLD;
@@ -936,605 +368,156 @@
 
         renderer.domElement.addEventListener('touchend', () => {
             isMouseDown = false;
-            moveForward = false;
-            moveBackward = false;
-            moveLeft = false;
-            moveRight = false;
+            moveForward = moveBackward = moveLeft = moveRight = false;
         });
 
         renderer.domElement.addEventListener('touchcancel', () => {
             isMouseDown = false;
-            moveForward = false;
-            moveBackward = false;
-            moveLeft = false;
-            moveRight = false;
+            moveForward = moveBackward = moveLeft = moveRight = false;
         });
 
-        // Create Rick character
-        class RickCharacter {
-            constructor() {
-                this.group = new THREE.Group();
-                scene.add(this.group);
-                
-                // Add debug cube to visualize position
-                const debugGeometry = new THREE.BoxGeometry(1, 2, 1);
-                const debugMaterial = new THREE.MeshBasicMaterial({ 
-                    color: 0xff0000,
-                    wireframe: true 
-                });
-                this.debugCube = new THREE.Mesh(debugGeometry, debugMaterial);
-                this.debugCube.position.y = 1;
-                this.group.add(this.debugCube);
-                
-                // Load Rick model
-                const loader = new GLTFLoader();
-                loader.load('assets/rick.glb', (gltf) => {
-                    this.model = gltf.scene;
-                    this.model.scale.set(1.5, 1.5, 1.5);  // Smaller scale
-                    // Position the model so waist is at screen bottom
-                    this.model.position.set(0, -3, 0);    // Move down so legs are below screen
-                    this.group.add(this.model);
-                    this.group.remove(this.debugCube);
-                }, 
-                undefined,
-                (error) => {
-                    console.error('Error loading Rick:', error);
-                });
-
-                // Initial position
-                this.group.position.set(0, 0, 0);
-                this.velocity = new THREE.Vector3();
-                this.direction = new THREE.Vector3();
-            }
-
-            update(delta) {
-                // Update position based on movement
-                this.direction.z = Number(moveForward) - Number(moveBackward);
-                this.direction.x = Number(moveLeft) - Number(moveRight);
-                this.direction.normalize();
-
-                // Apply movement sensitivity
-                const speed = MOVEMENT_SPEED;
-                if (moveForward || moveBackward) this.velocity.z = this.direction.z * speed * delta * MOVEMENT_SENSITIVITY;
-                if (moveLeft || moveRight) this.velocity.x = this.direction.x * speed * delta * MOVEMENT_SENSITIVITY;
-
-                // Get camera's horizontal rotation
-                const cameraDirection = new THREE.Vector3();
-                camera.getWorldDirection(cameraDirection);
-                const cameraAngle = Math.atan2(cameraDirection.x, cameraDirection.z);
-
-                // Apply movement relative to camera direction
-                if (this.velocity.length() > 0) {
-                    this.group.rotation.y = cameraAngle;
-                    
-                    // Move Rick with horizontal movement only
-                    const movement = new THREE.Vector3(this.velocity.x, 0, this.velocity.z);
-                    movement.applyAxisAngle(new THREE.Vector3(0, 1, 0), cameraAngle);
-                    this.group.position.add(movement);
+        // Virtual joystick controls
+        function setupJoystick() {
+            const joystickRect = joystickElement.getBoundingClientRect();
+            joystickCenterX = joystickRect.left + joystickRect.width / 2;
+            joystickCenterY = joystickRect.top + joystickRect.height / 2;
+            resetJoystickKnob();
+            
+            joystickElement.addEventListener('touchstart', (event) => {
+                if (window.isOverlayActive) return;
+                event.preventDefault();
+                if (!joystickActive) {
+                    const touch = event.touches[0];
+                    joystickTouchId = touch.identifier;
+                    joystickActive = true;
+                    updateJoystickPosition(touch.clientX, touch.clientY);
                 }
-
-                // Update camera target to follow Rick's upper body
-                controls.target.copy(this.group.position).add(new THREE.Vector3(0, 0.5, 0));
-                
-                // Reset velocity
-                this.velocity.set(0, 0, 0);
+            });
+            
+            joystickElement.addEventListener('mousedown', (event) => {
+                if (window.isOverlayActive) return;
+                event.preventDefault();
+                joystickActive = true;
+                updateJoystickPosition(event.clientX, event.clientY);
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+            });
+            
+            function handleMouseMove(event) {
+                if (!joystickActive || window.isOverlayActive) return;
+                event.preventDefault();
+                updateJoystickPosition(event.clientX, event.clientY);
             }
-        }
-
-        // Create Rick instance
-        const rick = new RickCharacter();
-
-        // Lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-        scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-        directionalLight.position.set(5, 5, 5);
-        directionalLight.castShadow = true;
-        directionalLight.shadow.mapSize.width = 2048;
-        directionalLight.shadow.mapSize.height = 2048;
-        scene.add(directionalLight);
-
-        // Create floating platform
-        const platformGeometry = new THREE.CylinderGeometry(5, 5, 0.5, 32);
-        const platformMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x333333,
-            roughness: 0.8,
-            metalness: 0.5
-        });
-        const platform = new THREE.Mesh(platformGeometry, platformMaterial);
-        platform.position.y = -4;               // Move platform way down
-        scene.add(platform);
-
-        // Portal class
-        class Portal {
-            constructor(position, rotation, title, url, color = 0x00ff77, sizeMultiplier = 1.0) {
-                this.url = url;
-                this.position = position;
-                this.rotation = rotation;
-                this.lastTriggerTime = 0;  // Add cooldown tracking
-                this.triggerCooldown = 1000; // 1 second cooldown
-                this.color = color;
-                this.sizeMultiplier = sizeMultiplier;
-
-                // Create portal spiral effect
-                const spiralGeometry = new THREE.TorusGeometry(2 * sizeMultiplier, 0.3 * sizeMultiplier, 16, 100);
-                const spiralMaterial = new THREE.MeshStandardMaterial({ 
-                    color: this.color,
-                    emissive: this.color,
-                    emissiveIntensity: 0.5,
-                    transparent: true,
-                    opacity: 0.8
-                });
-                this.spiral = new THREE.Mesh(spiralGeometry, spiralMaterial);
-                this.spiral.position.copy(position);
-                this.spiral.rotation.copy(rotation);
-                scene.add(this.spiral);
-
-                // Create portal inner effect (swirling texture)
-                const portalGeometry = new THREE.CircleGeometry(1.7 * sizeMultiplier, 32);
-                this.portalMaterial = new THREE.MeshBasicMaterial({
-                    color: this.color,
-                    transparent: true,
-                    opacity: 0.6,
-                    side: THREE.DoubleSide
-                });
-
-                // Create swirl texture
-                const canvas = document.createElement('canvas');
-                canvas.width = 512;
-                canvas.height = 512;
-                const ctx = canvas.getContext('2d');
-                
-                // Create gradient
-                const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
-                
-                // Convert hex color to RGB components for gradient
-                const r = (this.color >> 16) & 255;
-                const g = (this.color >> 8) & 255;
-                const b = this.color & 255;
-                
-                gradient.addColorStop(0, `rgb(${r}, ${g}, ${b})`);
-                gradient.addColorStop(0.5, `rgb(${Math.floor(r*0.7)}, ${Math.floor(g*0.7)}, ${Math.floor(b*0.7)})`);
-                gradient.addColorStop(1, `rgb(${Math.floor(r*0.4)}, ${Math.floor(g*0.4)}, ${Math.floor(b*0.4)})`);
-                
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, 512, 512);
-
-                // Create spiral pattern
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 2;
-                for(let i = 0; i < 360; i += 30) {
-                    ctx.beginPath();
-                    ctx.arc(256, 256, i, 0, Math.PI * 2);
-                    ctx.stroke();
-                }
-
-                const texture = new THREE.CanvasTexture(canvas);
-                this.portalMaterial.map = texture;
-
-                this.portal = new THREE.Mesh(portalGeometry, this.portalMaterial);
-                this.portal.position.copy(position);
-                this.portal.rotation.copy(rotation);
-                scene.add(this.portal);
-
-                // Add electric particles
-                this.particles = [];
-                for(let i = 0; i < 20; i++) {
-                    const particleGeometry = new THREE.SphereGeometry(0.03 * sizeMultiplier, 8, 8);
-                    const particleMaterial = new THREE.MeshBasicMaterial({
-                        color: this.color,
-                        transparent: true,
-                        opacity: 0.8
-                    });
-                    const particle = new THREE.Mesh(particleGeometry, particleMaterial);
-                    this.resetParticle(particle);
-                    scene.add(particle);
-                    this.particles.push(particle);
-                }
-
-                // Add title
-                this.addTitle(title);
+            
+            function handleMouseUp(event) {
+                event.preventDefault();
+                joystickActive = false;
+                resetJoystickKnob();
+                moveForward = moveBackward = moveLeft = moveRight = false;
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
             }
-
-            resetParticle(particle) {
-                const angle = Math.random() * Math.PI * 2;
-                const radius = 1.7 + Math.random() * 0.5;
-                particle.position.x = this.position.x + Math.cos(angle) * radius;
-                particle.position.y = this.position.y + Math.sin(angle) * radius;
-                particle.position.z = this.position.z;
-                particle.userData.speed = 0.02 + Math.random() * 0.03;
-                particle.userData.angle = angle;
-            }
-
-            updateParticles() {
-                this.particles.forEach(particle => {
-                    particle.userData.angle += particle.userData.speed;
-                    if(particle.userData.angle > Math.PI * 2) {
-                        this.resetParticle(particle);
-                    }
-                    const radius = 1.7 + Math.random() * 0.5;
-                    particle.position.x = this.position.x + Math.cos(particle.userData.angle) * radius;
-                    particle.position.y = this.position.y + Math.sin(particle.userData.angle) * radius;
-                });
-            }
-
-            addTitle(text) {
-                const loader = new FontLoader();
-                loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', (font) => {
-                    const geometry = new TextGeometry(text, {
-                        font: font,
-                        size: 0.3,
-                        height: 0.05
-                    });
-                    geometry.computeBoundingBox();
-                    const textMaterial = new THREE.MeshStandardMaterial({ 
-                        color: this.color,
-                        emissive: this.color,
-                        emissiveIntensity: 0.5
-                    });
-                    const textMesh = new THREE.Mesh(geometry, textMaterial);
-                    
-                    // Center the text above the portal
-                    const textWidth = geometry.boundingBox.max.x - geometry.boundingBox.min.x;
-                    textMesh.position.copy(this.position);
-                    textMesh.position.y += 2.5;
-                    textMesh.position.x -= textWidth / 2;
-                    textMesh.rotation.y = this.rotation.y;
-                    
-                    scene.add(textMesh);
-                });
-            }
-
-            checkCollision(position) {
-                // Skip collision check if overlay is active
-                if (isOverlayActive) return;
-
-                // Check if we're still in cooldown period
-                if (Date.now() - lastOverlayCloseTime < OVERLAY_COOLDOWN) return;
-
-                const distance = position.distanceTo(this.portal.position);
-                // Increase collision threshold for more sensitivity
-                const COLLISION_THRESHOLD = 3.0; // Increased from 1.5 to 3.0
-                
-                // Add visual indicator when close to portal
-                if (distance < COLLISION_THRESHOLD * 1.5) {
-                    // Make portal pulse faster and more intensely when player is close
-                    const pulseSpeed = 0.01 + (1 - distance / (COLLISION_THRESHOLD * 1.5)) * 0.05;
-                    const pulseIntensity = 0.3 + (1 - distance / (COLLISION_THRESHOLD * 1.5)) * 0.5;
-                    
-                    // Apply enhanced pulse effect
-                    const pulse = Math.sin(Date.now() * pulseSpeed) * pulseIntensity + 0.8;
-                    this.portalMaterial.opacity = 0.6 * pulse;
-                    this.spiral.material.opacity = 0.8 * pulse;
-                    this.spiral.material.emissiveIntensity = 0.7 * pulse;
-                    
-                    // Scale the portal slightly based on proximity
-                    const scale = 1 + (1 - distance / (COLLISION_THRESHOLD * 1.5)) * 0.2;
-                    this.spiral.scale.set(scale, scale, scale);
-                } else {
-                    // Reset scale when far away
-                    this.spiral.scale.set(1, 1, 1);
-                }
-
-                const currentTime = Date.now();
-                // Reduce cooldown time for more frequent checks
-                if (distance < COLLISION_THRESHOLD && 
-                    currentTime - this.lastTriggerTime > 500) { // Reduced from 1000ms to 500ms
-                    
-                    // Get direction from Rick to portal
-                    const toPortal = new THREE.Vector3();
-                    toPortal.subVectors(this.portal.position, position).normalize();
-                    
-                    // Get portal's forward direction
-                    const portalNormal = new THREE.Vector3(0, 0, -1);
-                    portalNormal.applyEuler(this.rotation);
-                    
-                    const dot = toPortal.dot(portalNormal);
-                    
-                    // Make the dot product check less strict (0.3 instead of 0.5)
-                    if (dot > 0.3) {
-                        this.lastTriggerTime = currentTime;
-                        
-                        // Add visual feedback when portal is triggered
-                        this.spiral.material.emissiveIntensity = 1.0;
-                        
-                        // Add a small delay to ensure the collision is intentional
-                        setTimeout(() => {
-                            if (position.distanceTo(this.portal.position) < COLLISION_THRESHOLD) {
-                                // Show overlay and set active state
-                                const overlay = document.getElementById('gameOverlay');
-                                const gameFrame = document.getElementById('gameFrame');
-                                
-                                // Add dim_source parameter to track where the user came from
-                                let targetUrl = this.url;
-                                const separator = targetUrl.includes('?') ? '&' : '?';
-                                targetUrl += `${separator}dim_source=${encodeURIComponent(window.location.hostname)}`;
-                                
-                                gameFrame.src = targetUrl;
-                                currentGameUrl = targetUrl;  // Store current game URL with dim_source
-                                overlay.style.display = 'block';
-                                isOverlayActive = true;  // Set state
-                                
-                                // Log portal activation for debugging
-                                console.log(`Portal activated! Navigating to: ${targetUrl}`);
-                            }
-                        }, 100);
+            
+            joystickElement.addEventListener('touchmove', (event) => {
+                if (!joystickActive || window.isOverlayActive) return;
+                event.preventDefault();
+                for (let i = 0; i < event.touches.length; i++) {
+                    const touch = event.touches[i];
+                    if (touch.identifier === joystickTouchId) {
+                        updateJoystickPosition(touch.clientX, touch.clientY);
+                        break;
                     }
                 }
-            }
+            });
+            
+            const endTouch = (event) => {
+                event.preventDefault();
+                let touchFound = false;
+                for (let i = 0; i < event.touches.length; i++) {
+                    if (event.touches[i].identifier === joystickTouchId) {
+                        touchFound = true;
+                        break;
+                    }
+                }
+                if (!touchFound) {
+                    joystickActive = false;
+                    joystickTouchId = null;
+                    resetJoystickKnob();
+                    moveForward = moveBackward = moveLeft = moveRight = false;
+                }
+            };
+            
+            joystickElement.addEventListener('touchend', endTouch);
+            joystickElement.addEventListener('touchcancel', endTouch);
+            
+            window.addEventListener('resize', () => {
+                const rect = joystickElement.getBoundingClientRect();
+                joystickCenterX = rect.left + rect.width / 2;
+                joystickCenterY = rect.top + rect.height / 2;
+                resetJoystickKnob();
+            });
         }
-
-        // Create portals in a circle
-        const portals = [
-            new Portal(
-                new THREE.Vector3(-8, 0, -8),
-                new THREE.Euler(0, 0.5, 0),
-                "2048",
-                "https://arcadefun.vercel.app/game/2048"
-            ),
-            new Portal(
-                new THREE.Vector3(0, 0, -12),
-                new THREE.Euler(0, 0, 0),
-                "Fly Pieter",
-                "https://fly.pieter.com/"
-            ),
-            new Portal(
-                new THREE.Vector3(8, 0, -8),
-                new THREE.Euler(0, -0.5, 0),
-                "Flappy Bird",
-                "https://arcadefun.vercel.app/game/flappybird"
-            ),
-            new Portal(
-                new THREE.Vector3(10, 0, -2),
-                new THREE.Euler(0, -1.0, 0),
-                "Pacman",
-                "https://arcadefun.vercel.app/game/pacman"
-            ),
-            new Portal(
-                new THREE.Vector3(10, 0, 5),
-                new THREE.Euler(0, -1.5, 0),
-                "Hot Air Vibe",
-                "https://www.hotairvibe.com/"
-            ),
-            new Portal(
-                new THREE.Vector3(5, 0, 10),
-                new THREE.Euler(0, -2.0, 0),
-                "Vibe Sail",
-                "https://vibesail.com/"
-            ),
-            new Portal(
-                new THREE.Vector3(-10, 0, -2),
-                new THREE.Euler(0, 1.0, 0),
-                "Submit New Portal",
-                "https://tally.so/r/wgvvPJ",
-                0xff0000  // Red color for the submission portal
-            )
-        ];
-
-        // Check for dim source parameter and create a return portal
-        const urlParams = new URLSearchParams(window.location.search);
-        const dimSource = urlParams.get('dim_source');
         
-        if (dimSource) {
-            console.log("User arrived from portal source:", dimSource);
-            returnPortalCreated = true; // Set the flag
+        function updateJoystickPosition(touchX, touchY) {
+            const deltaX = touchX - joystickCenterX;
+            const deltaY = touchY - joystickCenterY;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            const joystickRadius = joystickElement.offsetWidth / 2;
+            const knobRadius = joystickKnob.offsetWidth / 2;
+            const maxDistance = joystickRadius - knobRadius;
             
-            // Determine target URL - handle both domain names and full URLs
-            let targetUrl;
-            if (dimSource.startsWith('http://') || dimSource.startsWith('https://')) {
-                targetUrl = dimSource;
-            } else if (dimSource.includes('.')) {
-                // Looks like a domain name, add https://
-                targetUrl = `https://${dimSource}`;
-            } else {
-                // Just a name, make a best guess
-                targetUrl = `https://${dimSource}.com`;
+            if (distance > maxDistance) {
+                const angle = Math.atan2(deltaY, deltaX);
+                joystickX = Math.cos(angle) * maxDistance;
+                joystickY = Math.sin(angle) * maxDistance;
+                } else {
+                joystickX = deltaX;
+                joystickY = deltaY;
             }
             
-            // Define the return portal position - place it next to the Vibe Sail portal
-            const returnPortalPosition = new THREE.Vector3(0, 0, 10); // Position it in positive Z
+            joystickKnob.style.transform = `translate(calc(-50% + ${joystickX}px), calc(-50% + ${joystickY}px))`;
             
-            // Create a return portal with blue color - make it smaller
-            const returnPortal = new Portal(
-                returnPortalPosition,  // Position it next to Vibe Sail
-                new THREE.Euler(0, Math.PI, 0),  // Rotate to face Rick
-                `Return to ${dimSource}`,     // Title
-                targetUrl,                    // Target URL
-                0x0088ff,                     // Blue color for return portals
-                1.5                           // Smaller size (1.5x instead of 2x)
-            );
-            
-            // Add the return portal to the portals array
-            portals.push(returnPortal);
-            
-            // Keep Rick at his initial position (don't move him)
-            // Just update the camera to look at the initial position
-            setTimeout(() => {
-                // Update camera position to match Rick's position
-                camera.position.copy(rick.group.position).add(new THREE.Vector3(0, 1.5, 3));
-                controls.target.copy(rick.group.position).add(new THREE.Vector3(0, 0.5, 0));
-                controls.update();
-                
-                console.log(`Rick remains at his initial position: ${rick.group.position.x}, ${rick.group.position.y}, ${rick.group.position.z}`);
-                console.log(`Return portal created at: ${returnPortalPosition.x}, ${returnPortalPosition.y}, ${returnPortalPosition.z}`);
-            }, 1000); // Short delay to ensure everything is loaded
-            
-            // Create a notification that we came from another portal
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: rgba(0, 136, 255, 0.8);
-                color: white;
-                padding: 15px 25px;
-                border-radius: 8px;
-                font-family: Arial, sans-serif;
-                font-size: 18px;
-                font-weight: bold;
-                z-index: 9999;
-                box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-                text-align: center;
-                max-width: 90%;
-            `;
-            notification.textContent = `You arrived through a portal from ${dimSource}! Look BEHIND you to find the blue return portal.`;
-            document.body.appendChild(notification);
-            
-            // Remove notification after 15 seconds (extended time)
-            setTimeout(() => {
-                document.body.removeChild(notification);
-            }, 15000);
+            const normalizedX = joystickX / maxDistance;
+            const normalizedY = joystickY / maxDistance;
+            const deadzone = 0.3;
+            moveForward = normalizedY < -deadzone;
+            moveBackward = normalizedY > deadzone;
+            moveLeft = normalizedX < -deadzone;
+            moveRight = normalizedX > deadzone;
         }
+        
+        function resetJoystickKnob() {
+            joystickX = 0;
+            joystickY = 0;
+            joystickKnob.style.transform = 'translate(-50%, -50%)';
+        }
+        
+        setupJoystick();
 
-        // Handle window resize
+        // Window resize handler
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
+        // Animation loop
         const clock = new THREE.Clock();
-
-        // Modify animation loop to check overlay state
         function animate() {
             requestAnimationFrame(animate);
-
             const delta = clock.getDelta();
             
-            // Only update game state if overlay is not active
-            if (!isOverlayActive) {
-                // Update Rick's position and animation
+            if (!window.isOverlayActive) {
                 rick.update(delta);
-                
-                // Update controls
                 controls.update();
-
-                // Check portal collisions using Rick's position instead of camera
                 portals.forEach(portal => {
-                    portal.checkCollision(rick.group.position);
-                });
-
-                // Update portal effects
-                portals.forEach(portal => {
-                    // Rotate spiral
-                    portal.spiral.rotation.z += 0.01;
-                    
-                    // Rotate portal texture
-                    if(portal.portalMaterial.map) {
-                        portal.portalMaterial.map.rotation += 0.01;
-                        portal.portalMaterial.map.needsUpdate = true;
-                    }
-
-                    // Update particles
-                    portal.updateParticles();
-
-                    // Pulse effects
-                    const pulse = Math.sin(Date.now() * 0.003) * 0.2 + 0.8;
-                    portal.portalMaterial.opacity = 0.6 * pulse;
-                    portal.spiral.material.opacity = 0.8 * pulse;
-                    portal.spiral.material.emissiveIntensity = 0.5 * pulse;
+                    portal.checkCollision(rick.group.position, window.isOverlayActive, window.lastOverlayCloseTime, window.OVERLAY_COOLDOWN);
+                    portal.update();
                 });
             }
-
             renderer.render(scene, camera);
         }
-
         animate();
-
-        // Function to create a return portal
-        function createReturnPortal(sourceUrl) {
-            // Check if a return portal has already been created or if the source URL is invalid
-            if (returnPortalCreated || !sourceUrl) return;
-            
-            console.log(`Creating return portal to: ${sourceUrl}`);
-            returnPortalCreated = true; // Set the flag
-            
-            // Try to create a valid URL if it's not already one
-            let targetUrl = sourceUrl;
-            if (!sourceUrl.startsWith('http://') && !sourceUrl.startsWith('https://')) {
-                // Try to construct a valid URL
-                try {
-                    // First try with https
-                    targetUrl = 'https://' + sourceUrl;
-                    // Test if it's a valid URL
-                    new URL(targetUrl);
-                } catch (e) {
-                    console.log(`Invalid URL: ${targetUrl}`);
-                    // If not valid, it might be just a name/identifier, not a URL
-                    returnPortalCreated = false; // Reset the flag since we didn't create a portal
-                    return;
-                }
-            }
-            
-            // Create a new portal with blue color - place it next to the Vibe Sail portal
-            const returnPortalPosition = new THREE.Vector3(0, 0, 10); // Position it in positive Z
-            const returnPortal = new Portal(
-                returnPortalPosition,
-                new THREE.Euler(0, Math.PI, 0), // Rotate to face Rick
-                `Return to ${sourceUrl}`,
-                targetUrl,
-                0x0088ff, // Blue color for return portals
-                1.5       // Smaller size (1.5x instead of 2x)
-            );
-            
-            // Add the portal to the scene - the Portal class already adds itself to the scene
-            // No need to add it again: scene.add(returnPortal.portal);
-            portals.push(returnPortal);
-            
-            console.log(`Return portal created at position: ${returnPortalPosition.x}, ${returnPortalPosition.y}, ${returnPortalPosition.z}`);
-            
-            // Keep Rick at his initial position (don't move him)
-            // Just log the position for debugging
-            console.log(`Rick remains at his initial position: ${rick.group.position.x}, ${rick.group.position.y}, ${rick.group.position.z}`);
-        }
-
-        // Check for dim_source parameter
-        function checkdimSource() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const dimSource = urlParams.get('dim_source');
-            
-            if (dimSource) {
-                console.log(`User arrived from: ${dimSource}`);
-                
-                // Display notification
-                const dimNotification = document.getElementById('dimNotification');
-                const dimMessage = document.getElementById('dimMessage');
-                
-                // Format the message
-                let message = `You arrived through a portal from: <strong>${dimSource}</strong>`;
-                
-                // If it's a URL, make it clickable
-                if (dimSource.startsWith('http://') || dimSource.startsWith('https://')) {
-                    message += `<br><a href="${dimSource}" target="_blank" style="color: white; text-decoration: underline;">Visit source</a>`;
-                }
-                
-                dimMessage.innerHTML = message;
-                dimNotification.style.display = 'block';
-                
-                // Fade out after 8 seconds
-                setTimeout(() => {
-                    dimNotification.style.opacity = '0';
-                    dimNotification.style.transition = 'opacity 1s';
-                    setTimeout(() => {
-                        dimNotification.style.display = 'none';
-                        dimNotification.style.opacity = '1';
-                        dimNotification.style.transition = '';
-                    }, 1000);
-                }, 8000);
-                
-                // Add close button functionality
-                document.getElementById('dimCloseBtn').addEventListener('click', function() {
-                    dimNotification.style.display = 'none';
-                });
-                
-                // Create return portal if not already created
-                createReturnPortal(dimSource);
-            }
-        }
-
-        // Call the function when the page loads
-        window.addEventListener('load', checkdimSource);
     </script>
 </body>
 </html>
