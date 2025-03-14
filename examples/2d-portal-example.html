@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dim42 Portal Script Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #00ff77;
+            padding-bottom: 10px;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .example-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .example-section h2 {
+            margin-top: 0;
+            color: #00aa55;
+        }
+        .note {
+            background-color: #f0f9ff;
+            border-left: 4px solid #00aaff;
+            padding: 10px 15px;
+            margin: 20px 0;
+        }
+        #dim-test-panel {
+            background-color: #fff8f0;
+            border-left: 4px solid #ff5500;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        #dim-test-panel h3 {
+            margin-top: 0;
+            color: #ff5500;
+        }
+        #dim-source-value {
+            font-weight: bold;
+            color: #ff5500;
+        }
+        button {
+            background: #00ff77;
+            color: black;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #00cc77;
+        }
+        #test-dim-button {
+            background: #ff5500;
+        }
+        #test-dim-button:hover {
+            background: #ff3300;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dim42 Portal Script Example</h1>
+    
+    <p>This page demonstrates how to add a Rick and Morty style portal to any website using the Dim42 Portal Script.</p>
+    
+    <div id="dim-test-panel">
+        <h3>dim Source Testing</h3>
+        <p>Current dim Source: <span id="dim-source-value">None</span></p>
+        <p>To test the return portal functionality:</p>
+        <ol>
+            <li>Click the button below to add a test dim source</li>
+            <li>The page will reload with a dim parameter</li>
+            <li>You should see an orange return portal appear in the opposite corner</li>
+            <li>You'll also see a notification that you arrived through a portal</li>
+        </ol>
+        <button id="test-dim-button">Add Test dim Source</button>
+    </div>
+    
+    <div class="note">
+        <strong>Note:</strong> Look for the green portal in the bottom-right corner of this page. Click it to enter Dim42!
+    </div>
+    
+    <div class="example-section">
+        <h2>Basic Usage</h2>
+        <p>To add a portal to your website, simply include the script with the following tag:</p>
+        <pre>&lt;script src="embed/2d-portal-embed.js"&gt;&lt;/script&gt;</pre>
+        <p>This will add a default green portal in the bottom-right corner that links to Dim42.</p>
+    </div>
+    
+    <div class="example-section">
+        <h2>Customization</h2>
+        <p>You can customize the portal using data attributes:</p>
+        <pre>&lt;script 
+    src="embed/2d-portal-embed.js" 
+    data-target="https://dim42.com" 
+    data-position="bottom-right" 
+    data-color="#00ff77"
+    data-size="1"
+    data-title="Enter Dim42"&gt;
+&lt;/script&gt;</pre>
+        
+        <h3>Available Options:</h3>
+        <ul>
+            <li><strong>data-target</strong>: The URL to navigate to when entering the portal (default: "https://dim42.com")</li>
+            <li><strong>data-position</strong>: Where to place the portal - "top-left", "top-right", "bottom-left", or "bottom-right" (default: "bottom-right")</li>
+            <li><strong>data-color</strong>: The color of the portal in hex format (default: "#00ff77")</li>
+            <li><strong>data-size</strong>: Size multiplier for the portal (default: 1)</li>
+            <li><strong>data-title</strong>: The title to display above the portal (default: "Enter Dim42")</li>
+        </ul>
+    </div>
+    
+    <div class="example-section">
+        <h2>dim Source Tracking</h2>
+        <p>The portal script automatically adds a <code>dim_source</code> parameter to the target URL, allowing the destination to know where visitors came from.</p>
+        <p>For example, if your website is "example.com" and someone clicks your portal to Dim42, they'll be sent to:</p>
+        <pre>https://dim42.com?dim_source=example.com</pre>
+        <p>This allows Dim42 to create a return portal back to your site!</p>
+        
+        <h3>Return Portal Behavior</h3>
+        <p>When a user arrives at your site through a portal (with a dim_source parameter):</p>
+        <ol>
+            <li>A notification appears showing where they came from</li>
+            <li>An orange return portal appears in the opposite corner</li>
+            <li>Clicking the return portal takes them back to the source site</li>
+        </ol>
+        <p>Try it yourself by clicking the "Add Test dim Source" button at the top of this page!</p>
+    </div>
+    
+    <div class="example-section">
+        <h2>Multiple Portals</h2>
+        <p>You can add multiple portals to your site by including the script multiple times with different options:</p>
+        <pre>&lt;script src="embed/2d-portal-embed.js" data-position="bottom-left" data-color="#ff5500" data-target="https://game1.com"&gt;&lt;/script&gt;
+&lt;script src="embed/2d-portal-embed.js" data-position="bottom-right" data-color="#00ff77" data-target="https://dim42.com"&gt;&lt;/script&gt;</pre>
+    </div>
+    
+    <p>For more information and advanced usage, please visit <a href="https://dim42.com">Dim42</a>.</p>
+    
+    <script>
+        // Check for dim source parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const dimSource = urlParams.get('dim_source');
+        
+        // Update dim source display
+        const dimSourceValue = document.getElementById('dim-source-value');
+        if (dimSource) {
+            dimSourceValue.textContent = dimSource;
+        }
+        
+        // Add test dim source button
+        document.getElementById('test-dim-button').addEventListener('click', () => {
+            const testSource = window.location.hostname;
+            window.location.href = `${window.location.pathname}?dim_source=${testSource}`;
+        });
+    </script>
+    
+    <!-- Include the portal script -->
+    <script src="embed/2d-portal-embed.js" data-target="https://dim42.com" data-position="bottom-right" data-color="#00ff77"></script>
+</body>
+</html> 

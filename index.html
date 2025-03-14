@@ -408,6 +408,40 @@
                 height: 100px;
             }
         }
+
+        #dimNotification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 136, 255, 0.9);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 90%;
+        }
+        
+        #dimNotification button {
+            background-color: white;
+            color: #0088ff;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        #dimNotification button:hover {
+            background-color: #f0f0f0;
+        }
     </style>
 </head>
 <body>
@@ -456,6 +490,12 @@
                         <span>Submit New Portal</span>
                     </div>
                 </button>
+                <button id="testdimBtn" class="intro-button" style="width: 60%; padding: 12px; font-size: max(16px, 2vw); background: #0088ff;">
+                    <div class="button-content">
+                        <img src="assets/portallogo1.png" alt="Portal Logo" class="portal-logo" style="width: max(20px, 2.5vw); height: max(20px, 2.5vw);">
+                        <span>Test dim Source</span>
+                    </div>
+                </button>
             </div>
         </div>
     </div>
@@ -476,6 +516,11 @@
             </button>
         </div>
         <iframe id="gameFrame" allowfullscreen style="width: 95%; height: 90%; margin: auto;"></iframe>
+    </div>
+
+    <div id="dimNotification">
+        <div id="dimMessage"></div>
+        <button id="dimCloseBtn">Close</button>
     </div>
 
     <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
@@ -578,13 +623,28 @@
         let lastOverlayCloseTime = 0;  // Track when overlay was last closed
         const OVERLAY_COOLDOWN = 5000;  // 5 seconds cooldown
         
+        // Add a flag to track if a return portal has been created
+        let returnPortalCreated = false;
+        
         // Intro overlay handlers
-        document.getElementById('startExploringBtn').addEventListener('click', () => {
+        document.getElementById('startExploringBtn').addEventListener('click', function() {
             document.getElementById('introOverlay').style.display = 'none';
+            controls.lock();
         });
         
-        document.getElementById('submitPortalBtn').addEventListener('click', () => {
-            window.open('https://tally.so/r/wgvvPJ', '_blank');
+        document.getElementById('submitPortalBtn').addEventListener('click', function() {
+            window.open('https://forms.gle/Ld5TXTnTmgKSzPJE7', '_blank');
+        });
+        
+        document.getElementById('testdimBtn').addEventListener('click', function() {
+            // Get the current URL
+            const currentUrl = window.location.href;
+            // Create a URL object to handle the parameters properly
+            const url = new URL(currentUrl);
+            // Set the dim_source parameter to "test-portal"
+            url.searchParams.set('dim_source', 'test-portal');
+            // Open the URL in a new tab
+            window.open(url.toString(), '_blank');
         });
 
         // Modify overlay handlers
@@ -710,6 +770,7 @@
             
             joystickElement.addEventListener('touchend', endTouch);
             joystickElement.addEventListener('touchcancel', endTouch);
+            
             
             // Update joystick on window resize
             window.addEventListener('resize', () => {
@@ -1003,16 +1064,17 @@
 
         // Portal class
         class Portal {
-            constructor(position, rotation, title, url, color = 0x00ff77) {
+            constructor(position, rotation, title, url, color = 0x00ff77, sizeMultiplier = 1.0) {
                 this.url = url;
                 this.position = position;
                 this.rotation = rotation;
                 this.lastTriggerTime = 0;  // Add cooldown tracking
                 this.triggerCooldown = 1000; // 1 second cooldown
                 this.color = color;
+                this.sizeMultiplier = sizeMultiplier;
 
                 // Create portal spiral effect
-                const spiralGeometry = new THREE.TorusGeometry(2, 0.3, 16, 100);
+                const spiralGeometry = new THREE.TorusGeometry(2 * sizeMultiplier, 0.3 * sizeMultiplier, 16, 100);
                 const spiralMaterial = new THREE.MeshStandardMaterial({ 
                     color: this.color,
                     emissive: this.color,
@@ -1026,7 +1088,7 @@
                 scene.add(this.spiral);
 
                 // Create portal inner effect (swirling texture)
-                const portalGeometry = new THREE.CircleGeometry(1.7, 32);
+                const portalGeometry = new THREE.CircleGeometry(1.7 * sizeMultiplier, 32);
                 this.portalMaterial = new THREE.MeshBasicMaterial({
                     color: this.color,
                     transparent: true,
@@ -1075,7 +1137,7 @@
                 // Add electric particles
                 this.particles = [];
                 for(let i = 0; i < 20; i++) {
-                    const particleGeometry = new THREE.SphereGeometry(0.03, 8, 8);
+                    const particleGeometry = new THREE.SphereGeometry(0.03 * sizeMultiplier, 8, 8);
                     const particleMaterial = new THREE.MeshBasicMaterial({
                         color: this.color,
                         transparent: true,
@@ -1148,11 +1210,33 @@
                 if (Date.now() - lastOverlayCloseTime < OVERLAY_COOLDOWN) return;
 
                 const distance = position.distanceTo(this.portal.position);
-                const COLLISION_THRESHOLD = 1.5;
+                // Increase collision threshold for more sensitivity
+                const COLLISION_THRESHOLD = 3.0; // Increased from 1.5 to 3.0
+                
+                // Add visual indicator when close to portal
+                if (distance < COLLISION_THRESHOLD * 1.5) {
+                    // Make portal pulse faster and more intensely when player is close
+                    const pulseSpeed = 0.01 + (1 - distance / (COLLISION_THRESHOLD * 1.5)) * 0.05;
+                    const pulseIntensity = 0.3 + (1 - distance / (COLLISION_THRESHOLD * 1.5)) * 0.5;
+                    
+                    // Apply enhanced pulse effect
+                    const pulse = Math.sin(Date.now() * pulseSpeed) * pulseIntensity + 0.8;
+                    this.portalMaterial.opacity = 0.6 * pulse;
+                    this.spiral.material.opacity = 0.8 * pulse;
+                    this.spiral.material.emissiveIntensity = 0.7 * pulse;
+                    
+                    // Scale the portal slightly based on proximity
+                    const scale = 1 + (1 - distance / (COLLISION_THRESHOLD * 1.5)) * 0.2;
+                    this.spiral.scale.set(scale, scale, scale);
+                } else {
+                    // Reset scale when far away
+                    this.spiral.scale.set(1, 1, 1);
+                }
 
                 const currentTime = Date.now();
+                // Reduce cooldown time for more frequent checks
                 if (distance < COLLISION_THRESHOLD && 
-                    currentTime - this.lastTriggerTime > this.triggerCooldown) {
+                    currentTime - this.lastTriggerTime > 500) { // Reduced from 1000ms to 500ms
                     
                     // Get direction from Rick to portal
                     const toPortal = new THREE.Vector3();
@@ -1164,18 +1248,32 @@
                     
                     const dot = toPortal.dot(portalNormal);
                     
-                    if (dot > 0.5) {
+                    // Make the dot product check less strict (0.3 instead of 0.5)
+                    if (dot > 0.3) {
                         this.lastTriggerTime = currentTime;
+                        
+                        // Add visual feedback when portal is triggered
+                        this.spiral.material.emissiveIntensity = 1.0;
+                        
                         // Add a small delay to ensure the collision is intentional
                         setTimeout(() => {
                             if (position.distanceTo(this.portal.position) < COLLISION_THRESHOLD) {
                                 // Show overlay and set active state
                                 const overlay = document.getElementById('gameOverlay');
                                 const gameFrame = document.getElementById('gameFrame');
-                                gameFrame.src = this.url;
-                                currentGameUrl = this.url;  // Store current game URL
+                                
+                                // Add dim_source parameter to track where the user came from
+                                let targetUrl = this.url;
+                                const separator = targetUrl.includes('?') ? '&' : '?';
+                                targetUrl += `${separator}dim_source=${encodeURIComponent(window.location.hostname)}`;
+                                
+                                gameFrame.src = targetUrl;
+                                currentGameUrl = targetUrl;  // Store current game URL with dim_source
                                 overlay.style.display = 'block';
                                 isOverlayActive = true;  // Set state
+                                
+                                // Log portal activation for debugging
+                                console.log(`Portal activated! Navigating to: ${targetUrl}`);
                             }
                         }, 100);
                     }
@@ -1229,6 +1327,82 @@
                 0xff0000  // Red color for the submission portal
             )
         ];
+
+        // Check for dim source parameter and create a return portal
+        const urlParams = new URLSearchParams(window.location.search);
+        const dimSource = urlParams.get('dim_source');
+        
+        if (dimSource) {
+            console.log("User arrived from portal source:", dimSource);
+            returnPortalCreated = true; // Set the flag
+            
+            // Determine target URL - handle both domain names and full URLs
+            let targetUrl;
+            if (dimSource.startsWith('http://') || dimSource.startsWith('https://')) {
+                targetUrl = dimSource;
+            } else if (dimSource.includes('.')) {
+                // Looks like a domain name, add https://
+                targetUrl = `https://${dimSource}`;
+            } else {
+                // Just a name, make a best guess
+                targetUrl = `https://${dimSource}.com`;
+            }
+            
+            // Define the return portal position - place it next to the Vibe Sail portal
+            const returnPortalPosition = new THREE.Vector3(0, 0, 10); // Position it in positive Z
+            
+            // Create a return portal with blue color - make it smaller
+            const returnPortal = new Portal(
+                returnPortalPosition,  // Position it next to Vibe Sail
+                new THREE.Euler(0, Math.PI, 0),  // Rotate to face Rick
+                `Return to ${dimSource}`,     // Title
+                targetUrl,                    // Target URL
+                0x0088ff,                     // Blue color for return portals
+                1.5                           // Smaller size (1.5x instead of 2x)
+            );
+            
+            // Add the return portal to the portals array
+            portals.push(returnPortal);
+            
+            // Keep Rick at his initial position (don't move him)
+            // Just update the camera to look at the initial position
+            setTimeout(() => {
+                // Update camera position to match Rick's position
+                camera.position.copy(rick.group.position).add(new THREE.Vector3(0, 1.5, 3));
+                controls.target.copy(rick.group.position).add(new THREE.Vector3(0, 0.5, 0));
+                controls.update();
+                
+                console.log(`Rick remains at his initial position: ${rick.group.position.x}, ${rick.group.position.y}, ${rick.group.position.z}`);
+                console.log(`Return portal created at: ${returnPortalPosition.x}, ${returnPortalPosition.y}, ${returnPortalPosition.z}`);
+            }, 1000); // Short delay to ensure everything is loaded
+            
+            // Create a notification that we came from another portal
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0, 136, 255, 0.8);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 8px;
+                font-family: Arial, sans-serif;
+                font-size: 18px;
+                font-weight: bold;
+                z-index: 9999;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+                text-align: center;
+                max-width: 90%;
+            `;
+            notification.textContent = `You arrived through a portal from ${dimSource}! Look BEHIND you to find the blue return portal.`;
+            document.body.appendChild(notification);
+            
+            // Remove notification after 15 seconds (extended time)
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 15000);
+        }
 
         // Handle window resize
         window.addEventListener('resize', () => {
@@ -1284,6 +1458,100 @@
         }
 
         animate();
+
+        // Function to create a return portal
+        function createReturnPortal(sourceUrl) {
+            // Check if a return portal has already been created or if the source URL is invalid
+            if (returnPortalCreated || !sourceUrl) return;
+            
+            console.log(`Creating return portal to: ${sourceUrl}`);
+            returnPortalCreated = true; // Set the flag
+            
+            // Try to create a valid URL if it's not already one
+            let targetUrl = sourceUrl;
+            if (!sourceUrl.startsWith('http://') && !sourceUrl.startsWith('https://')) {
+                // Try to construct a valid URL
+                try {
+                    // First try with https
+                    targetUrl = 'https://' + sourceUrl;
+                    // Test if it's a valid URL
+                    new URL(targetUrl);
+                } catch (e) {
+                    console.log(`Invalid URL: ${targetUrl}`);
+                    // If not valid, it might be just a name/identifier, not a URL
+                    returnPortalCreated = false; // Reset the flag since we didn't create a portal
+                    return;
+                }
+            }
+            
+            // Create a new portal with blue color - place it next to the Vibe Sail portal
+            const returnPortalPosition = new THREE.Vector3(0, 0, 10); // Position it in positive Z
+            const returnPortal = new Portal(
+                returnPortalPosition,
+                new THREE.Euler(0, Math.PI, 0), // Rotate to face Rick
+                `Return to ${sourceUrl}`,
+                targetUrl,
+                0x0088ff, // Blue color for return portals
+                1.5       // Smaller size (1.5x instead of 2x)
+            );
+            
+            // Add the portal to the scene - the Portal class already adds itself to the scene
+            // No need to add it again: scene.add(returnPortal.portal);
+            portals.push(returnPortal);
+            
+            console.log(`Return portal created at position: ${returnPortalPosition.x}, ${returnPortalPosition.y}, ${returnPortalPosition.z}`);
+            
+            // Keep Rick at his initial position (don't move him)
+            // Just log the position for debugging
+            console.log(`Rick remains at his initial position: ${rick.group.position.x}, ${rick.group.position.y}, ${rick.group.position.z}`);
+        }
+
+        // Check for dim_source parameter
+        function checkdimSource() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const dimSource = urlParams.get('dim_source');
+            
+            if (dimSource) {
+                console.log(`User arrived from: ${dimSource}`);
+                
+                // Display notification
+                const dimNotification = document.getElementById('dimNotification');
+                const dimMessage = document.getElementById('dimMessage');
+                
+                // Format the message
+                let message = `You arrived through a portal from: <strong>${dimSource}</strong>`;
+                
+                // If it's a URL, make it clickable
+                if (dimSource.startsWith('http://') || dimSource.startsWith('https://')) {
+                    message += `<br><a href="${dimSource}" target="_blank" style="color: white; text-decoration: underline;">Visit source</a>`;
+                }
+                
+                dimMessage.innerHTML = message;
+                dimNotification.style.display = 'block';
+                
+                // Fade out after 8 seconds
+                setTimeout(() => {
+                    dimNotification.style.opacity = '0';
+                    dimNotification.style.transition = 'opacity 1s';
+                    setTimeout(() => {
+                        dimNotification.style.display = 'none';
+                        dimNotification.style.opacity = '1';
+                        dimNotification.style.transition = '';
+                    }, 1000);
+                }, 8000);
+                
+                // Add close button functionality
+                document.getElementById('dimCloseBtn').addEventListener('click', function() {
+                    dimNotification.style.display = 'none';
+                });
+                
+                // Create return portal if not already created
+                createReturnPortal(dimSource);
+            }
+        }
+
+        // Call the function when the page loads
+        window.addEventListener('load', checkdimSource);
     </script>
 </body>
 </html>

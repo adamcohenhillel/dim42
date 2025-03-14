@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dim42 Portal Example</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+        #instructions {
+            position: fixed;
+            left: 50%;
+            bottom: 20px;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 5px;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            pointer-events: none;
+        }
+        #dim-test-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 5px;
+            color: white;
+            font-family: Arial, sans-serif;
+            max-width: 300px;
+            z-index: 1000;
+        }
+        #dim-test-panel h3 {
+            margin-top: 0;
+            color: #00ff77;
+        }
+        #dim-test-panel button {
+            background: #00ff77;
+            color: black;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+            width: 100%;
+        }
+        #dim-test-panel button:hover {
+            background: #00cc77;
+        }
+        #dim-source-value {
+            font-weight: bold;
+            color: #ff5500;
+        }
+        /* Add portal indicator styles */
+        #portal-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 255, 119, 0.7);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            z-index: 1000;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="instructions">
+        WASD/Arrow keys to move | Mouse to look around | Walk into the portal to enter Dim42
+    </div>
+    
+    <div id="dim-test-panel">
+        <h3>dim Source Testing</h3>
+        <p>Current dim Source: <span id="dim-source-value">None</span></p>
+        <p>To test the return portal functionality:</p>
+        <ol>
+            <li>Click the button below to add a test dim source</li>
+            <li>The page will reload with a dim parameter</li>
+            <li>You should see an orange return portal appear</li>
+        </ol>
+        <button id="add-dim-button">Add Test dim Source</button>
+    </div>
+    
+    <!-- Add portal indicator -->
+    <div id="portal-indicator">
+        Portal nearby! Move closer to activate.
+    </div>
+
+    <!-- Add debug panel for dim portal -->
+    <div id="debug-panel">
+        <h3 style="margin-top: 0; color: #ff5500;">dim Portal Debug</h3>
+        <div id="debug-info">No dim portal found</div>
+        <button id="test-dim-portal" style="background: #ff5500; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px; width: 100%;">
+            Test dim Portal Directly
+        </button>
+    </div>
+
+    <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+        import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+
+        // Make THREE available globally for the portal component
+        window.THREE = THREE;
+        
+        // Check for dim source parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const dimSource = urlParams.get('dim_source');
+        
+        // Update dim source display
+        const dimSourceValue = document.getElementById('dim-source-value');
+        if (dimSource) {
+            dimSourceValue.textContent = dimSource;
+        }
+        
+        // Add test dim source button
+        document.getElementById('add-dim-button').addEventListener('click', () => {
+            const testSource = window.location.hostname;
+            window.location.href = `${window.location.pathname}?dim_source=${testSource}`;
+        });
+
+        // Add debug panel for dim portal
+        const debugPanel = document.createElement('div');
+        debugPanel.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 5px;
+            color: white;
+            font-family: Arial, sans-serif;
+            max-width: 300px;
+            z-index: 1000;
+        `;
+        debugPanel.innerHTML = `
+            <h3 style="margin-top: 0; color: #ff5500;">dim Portal Debug</h3>
+            <div id="debug-info">No dim portal found</div>
+            <button id="test-dim-portal" style="background: #ff5500; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px; width: 100%;">
+                Test dim Portal Directly
+            </button>
+        `;
+        document.body.appendChild(debugPanel);
+
+        // Import our portal component
+        import('./embed/3d-portal-embed.js').then((module) => {
+            // Override the Dim42Portal class to make it more sensitive
+            const originalDim42Portal = window.Dim42Portal;
+            
+            window.Dim42Portal = class EnhancedDim42Portal extends originalDim42Portal {
+                constructor(scene, position, rotation, title, url, color = 0x00ff77, options = {}) {
+                    super(scene, position, rotation, title, url, color, options);
+                    // Increase collision sensitivity
+                    this.collisionThreshold = options.collisionThreshold || 5.0; // Increased from default
+                    this.lastActivationTime = 0;
+                    this.activationCooldown = 300; // Reduced cooldown (milliseconds)
+                    
+                    // Create enhanced visual effects
+                    this.createEnhancedEffects();
+                }
+                
+                createEnhancedEffects() {
+                    // Add a light to make the portal more visible
+                    this.portalLight = new THREE.PointLight(this.color, 1, 10);
+                    this.portalLight.position.copy(this.position);
+                    this.scene.add(this.portalLight);
+                    
+                    // Add a larger outer glow
+                    const glowGeometry = new THREE.TorusGeometry(2.5, 0.2, 16, 100);
+                    const glowMaterial = new THREE.MeshBasicMaterial({
+                        color: this.color,
+                        transparent: true,
+                        opacity: 0.3,
+                        side: THREE.DoubleSide
+                    });
+                    this.glowRing = new THREE.Mesh(glowGeometry, glowMaterial);
+                    this.glowRing.position.copy(this.position);
+                    this.glowRing.rotation.copy(this.rotation);
+                    this.scene.add(this.glowRing);
+                }
+                
+                update(delta) {
+                    super.update(delta);
+                    
+                    // Update enhanced effects
+                    if (this.portalLight) {
+                        const intensity = 0.7 + Math.sin(Date.now() * 0.005) * 0.3;
+                        this.portalLight.intensity = intensity;
+                    }
+                    
+                    if (this.glowRing) {
+                        this.glowRing.rotation.z += 0.01;
+                        const scale = 1 + Math.sin(Date.now() * 0.003) * 0.1;
+                        this.glowRing.scale.set(scale, scale, scale);
+                    }
+                }
+                
+                checkCollision(position) {
+                    const distance = position.distanceTo(this.position);
+                    const portalIndicator = document.getElementById('portal-indicator');
+                    
+                    // Show indicator when near a portal
+                    if (distance < this.collisionThreshold * 1.5) {
+                        portalIndicator.style.display = 'block';
+                        portalIndicator.textContent = `${this.title} portal nearby! Move closer to activate.`;
+                        portalIndicator.style.background = `rgba(${(this.color >> 16) & 255}, ${(this.color >> 8) & 255}, ${this.color & 255}, 0.7)`;
+                        
+                        // Visual feedback - make portal pulse faster when player is close
+                        const pulseSpeed = 0.01 + (1 - distance / (this.collisionThreshold * 1.5)) * 0.05;
+                        const pulseIntensity = 0.3 + (1 - distance / (this.collisionThreshold * 1.5)) * 0.5;
+                        
+                        // Apply enhanced pulse effect to spiral
+                        if (this.spiral) {
+                            const pulse = Math.sin(Date.now() * pulseSpeed) * pulseIntensity + 0.8;
+                            this.spiral.material.opacity = 0.8 * pulse;
+                            this.spiral.material.emissiveIntensity = 0.7 * pulse;
+                            
+                            // Scale the portal slightly based on proximity
+                            const scale = 1 + (1 - distance / (this.collisionThreshold * 1.5)) * 0.2;
+                            this.spiral.scale.set(scale, scale, scale);
+                        }
+                        
+                        // Increase light intensity when close
+                        if (this.portalLight) {
+                            this.portalLight.intensity = 1 + (1 - distance / this.collisionThreshold) * 2;
+                        }
+                    } else {
+                        portalIndicator.style.display = 'none';
+                        
+                        // Reset visual effects
+                        if (this.spiral) {
+                            this.spiral.scale.set(1, 1, 1);
+                        }
+                        
+                        if (this.portalLight) {
+                            this.portalLight.intensity = 1;
+                        }
+                    }
+                    
+                    const now = Date.now();
+                    // Check if we're within activation range and cooldown has passed
+                    if (distance < this.collisionThreshold && now - this.lastActivationTime > this.activationCooldown) {
+                        // Get direction from player to portal
+                        const toPortal = new THREE.Vector3();
+                        toPortal.subVectors(this.position, position).normalize();
+                        
+                        // Get portal's forward direction
+                        const portalNormal = new THREE.Vector3(0, 0, -1);
+                        portalNormal.applyEuler(this.rotation);
+                        
+                        const dot = toPortal.dot(portalNormal);
+                        
+                        // Less strict directional requirement (0.2 instead of 0.5)
+                        if (dot > 0.2) {
+                            this.lastActivationTime = now;
+                            
+                            // Visual feedback on activation
+                            if (this.spiral) {
+                                this.spiral.material.emissiveIntensity = 1.5;
+                            }
+                            
+                            if (this.portalLight) {
+                                this.portalLight.intensity = 3;
+                            }
+                            
+                            console.log(`Portal "${this.title}" activated! Navigating to: ${this.url}`);
+                            
+                            // Navigate to the URL
+                            setTimeout(() => {
+                                // Add dim_source parameter
+                                let targetUrl = this.url;
+                                const separator = targetUrl.includes('?') ? '&' : '?';
+                                targetUrl += `${separator}dim_source=${encodeURIComponent(window.location.hostname)}`;
+                                
+                                window.location.href = targetUrl;
+                            }, 500); // Short delay for visual feedback
+                        }
+                    }
+                }
+            };
+            
+            // Override createdimSourcePortal to make it more reliable
+            const originalCreatedimSourcePortal = window.createdimSourcePortal;
+            
+            window.createdimSourcePortal = function(scene, options = {}) {
+                console.log("Creating dim source portal with options:", options);
+                console.log("Current dim source:", dimSource);
+                
+                // If no dim source, don't create a portal
+                if (!dimSource) {
+                    console.log("No dim source found, not creating portal");
+                    document.getElementById('debug-info').innerHTML = "No dim source parameter found";
+                    return null;
+                }
+                
+                // Determine target URL - handle both domain names and full URLs
+                let targetUrl;
+                if (dimSource.startsWith('http://') || dimSource.startsWith('https://')) {
+                    targetUrl = dimSource;
+                } else if (dimSource.includes('.')) {
+                    // Looks like a domain name, add https://
+                    targetUrl = `https://${dimSource}`;
+                } else {
+                    // Just a name, make a best guess
+                    targetUrl = `https://${dimSource}.com`;
+                }
+                
+                console.log("Creating portal to target URL:", targetUrl);
+                
+                // Set default options if not provided
+                const position = options.position || new THREE.Vector3(-5, 1, 0);
+                const rotation = options.rotation || new THREE.Euler(0, Math.PI / 4, 0);
+                const color = options.color || 0xff5500;
+                const size = options.size || 1.2; // Make it larger by default
+                const collisionThreshold = options.collisionThreshold || 5.0;
+                
+                // Create the portal with enhanced settings
+                const portal = new window.Dim42Portal(
+                    scene,
+                    position,
+                    rotation,
+                    `Return to ${dimSource}`,
+                    targetUrl,
+                    color,
+                    { 
+                        size: size,
+                        collisionThreshold: collisionThreshold
+                    }
+                );
+                
+                // Update debug info
+                document.getElementById('debug-info').innerHTML = `
+                    <p>dim Source: <strong>${dimSource}</strong></p>
+                    <p>Target URL: <strong>${targetUrl}</strong></p>
+                    <p>Portal Position: <span id="portal-pos">${position.x.toFixed(2)}, ${position.y.toFixed(2)}, ${position.z.toFixed(2)}</span></p>
+                    <p>Distance to Portal: <span id="portal-distance">Calculating...</span></p>
+                `;
+                
+                // Add direct test button functionality
+                document.getElementById('test-dim-portal').addEventListener('click', () => {
+                    console.log("Direct navigation to dim source:", targetUrl);
+                    window.location.href = targetUrl;
+                });
+                
+                // Return the created portal
+                return portal;
+            };
+            
+            init();
+        });
+
+        function init() {
+            // Scene setup
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x222222);
+            
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            document.body.appendChild(renderer.domElement);
+
+            // Add lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(5, 5, 5);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+
+            // Add a floor
+            const floorGeometry = new THREE.PlaneGeometry(20, 20);
+            const floorMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x333333,
+                roughness: 0.8,
+                metalness: 0.2
+            });
+            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            // Simple player setup
+            const player = {
+                position: new THREE.Vector3(0, 1, 5),
+                velocity: new THREE.Vector3(),
+                direction: new THREE.Vector3(),
+                moveSpeed: 5,
+                moveForward: false,
+                moveBackward: false,
+                moveLeft: false,
+                moveRight: false
+            };
+
+            // Camera setup
+            camera.position.copy(player.position);
+            
+            // Controls
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 1.5;
+            controls.minDistance = 0;
+            controls.maxDistance = 0;
+            controls.enablePan = false;
+
+            // Add keyboard controls
+            document.addEventListener('keydown', (event) => {
+                switch (event.code) {
+                    case 'KeyW':
+                    case 'ArrowUp':
+                        player.moveForward = true;
+                        break;
+                    case 'KeyS':
+                    case 'ArrowDown':
+                        player.moveBackward = true;
+                        break;
+                    case 'KeyA':
+                    case 'ArrowLeft':
+                        player.moveLeft = true;
+                        break;
+                    case 'KeyD':
+                    case 'ArrowRight':
+                        player.moveRight = true;
+                        break;
+                }
+            });
+
+            document.addEventListener('keyup', (event) => {
+                switch (event.code) {
+                    case 'KeyW':
+                    case 'ArrowUp':
+                        player.moveForward = false;
+                        break;
+                    case 'KeyS':
+                    case 'ArrowDown':
+                        player.moveBackward = false;
+                        break;
+                    case 'KeyA':
+                    case 'ArrowLeft':
+                        player.moveLeft = false;
+                        break;
+                    case 'KeyD':
+                    case 'ArrowRight':
+                        player.moveRight = false;
+                        break;
+                }
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            // Create a portal to Dim42
+            const portal = new Dim42Portal(
+                scene,
+                new THREE.Vector3(0, 1, 0),
+                new THREE.Euler(0, 0, 0),
+                "Enter Dim42",
+                "https://dim42.com",
+                0x00ff77,
+                { size: 1, collisionThreshold: 5.0 }
+            );
+
+            // Check for dim_source parameter and create a portal back to that source
+            const dimPortal = createdimSourcePortal(scene, {
+                position: new THREE.Vector3(-5, 1, 0),
+                rotation: new THREE.Euler(0, Math.PI / 4, 0),
+                color: 0xff5500,
+                size: 0.8,
+                collisionThreshold: 5.0
+            });
+
+            if (dimPortal) {
+                console.log("Created portal to dim source:", dimPortal.url);
+                
+                // Add a text label to explain the return portal
+                const textDiv = document.createElement('div');
+                textDiv.style.cssText = `
+                    position: fixed;
+                    left: 20%;
+                    top: 20px;
+                    background: rgba(255, 85, 0, 0.7);
+                    color: white;
+                    padding: 10px 15px;
+                    border-radius: 5px;
+                    font-family: Arial, sans-serif;
+                    font-size: 16px;
+                    z-index: 1000;
+                    pointer-events: none;
+                `;
+                textDiv.textContent = `Return portal to ${dimSource} created! Walk into the orange portal to go back.`;
+                document.body.appendChild(textDiv);
+            }
+
+            const clock = new THREE.Clock();
+
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                const delta = clock.getDelta();
+
+                // Update player movement
+                updatePlayerMovement(delta);
+                
+                // Update camera position to follow player
+                camera.position.copy(player.position);
+                controls.target.copy(player.position).add(new THREE.Vector3(0, 0, -1));
+                
+                // Update controls
+                controls.update();
+                
+                // Update portal animations
+                portal.update(delta);
+                if (dimPortal) {
+                    dimPortal.update(delta);
+                    
+                    // Update debug info
+                    const distanceElement = document.getElementById('portal-distance');
+                    if (distanceElement) {
+                        const distance = player.position.distanceTo(dimPortal.position);
+                        distanceElement.textContent = distance.toFixed(2) + " units";
+                        
+                        // Change color based on distance
+                        if (distance < dimPortal.collisionThreshold) {
+                            distanceElement.style.color = "#00ff00"; // Green when in range
+                        } else if (distance < dimPortal.collisionThreshold * 1.5) {
+                            distanceElement.style.color = "#ffff00"; // Yellow when close
+                        } else {
+                            distanceElement.style.color = "#ffffff"; // White when far
+                        }
+                    }
+                    
+                    // Update player position in debug info
+                    const playerPosElement = document.getElementById('player-pos');
+                    if (playerPosElement) {
+                        playerPosElement.textContent = `${player.position.x.toFixed(2)}, ${player.position.y.toFixed(2)}, ${player.position.z.toFixed(2)}`;
+                    }
+                }
+                
+                // Check portal collisions
+                portal.checkCollision(player.position);
+                if (dimPortal) dimPortal.checkCollision(player.position);
+                
+                renderer.render(scene, camera);
+            }
+
+            function updatePlayerMovement(delta) {
+                // Calculate movement direction based on camera orientation
+                const cameraDirection = new THREE.Vector3();
+                camera.getWorldDirection(cameraDirection);
+                const cameraAngle = Math.atan2(cameraDirection.x, cameraDirection.z);
+                
+                // Reset velocity
+                player.velocity.set(0, 0, 0);
+                
+                // Set direction based on keys
+                player.direction.z = Number(player.moveForward) - Number(player.moveBackward);
+                player.direction.x = Number(player.moveLeft) - Number(player.moveRight);
+                player.direction.normalize();
+                
+                // Apply movement relative to camera direction
+                if (player.direction.length() > 0) {
+                    // Calculate forward/backward movement
+                    if (player.moveForward || player.moveBackward) {
+                        player.velocity.x += Math.sin(cameraAngle) * player.direction.z * player.moveSpeed;
+                        player.velocity.z += Math.cos(cameraAngle) * player.direction.z * player.moveSpeed;
+                    }
+                    
+                    // Calculate left/right movement
+                    if (player.moveLeft || player.moveRight) {
+                        player.velocity.x += Math.sin(cameraAngle + Math.PI/2) * player.direction.x * player.moveSpeed;
+                        player.velocity.z += Math.cos(cameraAngle + Math.PI/2) * player.direction.x * player.moveSpeed;
+                    }
+                    
+                    // Apply movement
+                    player.position.x += player.velocity.x * delta;
+                    player.position.z += player.velocity.z * delta;
+                }
+            }
+
+            animate();
+        }
+    </script>
+</body>
+</html> 
