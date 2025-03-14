@@ -147,10 +147,10 @@ const portalHTML = `
     <div class="modal-container">
         <div class="modal-header">
             <nav id="portalNavBar">
-                <button id="closeOverlay" class="portal-nav-button" title="Back to Dim42">
+                <button id="closeOverlay" class="portal-nav-button">
                     <img src="assets/back.png" alt="Back Icon" class="portal-logo">
                 </button>
-                <button id="openNewTab" class="portal-nav-button" title="Open in New Tab">
+                <button id="openNewTab" class="portal-nav-button">
                     <img src="assets/newtab.png" alt="New Tab Icon" class="portal-logo">
                 </button>
             </nav>
