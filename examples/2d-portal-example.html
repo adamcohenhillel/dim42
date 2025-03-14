@@ -96,36 +96,37 @@
     
     <div class="example-section">
         <h2>Basic Usage</h2>
-        <p>To add a portal to your website, simply include the script with the following tag:</p>
-        <pre>&lt;script src="embed/2d-portal-embed.js"&gt;&lt;/script&gt;</pre>
+        <p>To add a portal to your website, import and use the create2DPortal function:</p>
+        <pre>import { create2DPortal } from '../js/Portal.js';
+
+create2DPortal();</pre>
         <p>This will add a default green portal in the bottom-right corner that links to Dim42.</p>
     </div>
     
     <div class="example-section">
         <h2>Customization</h2>
-        <p>You can customize the portal using data attributes:</p>
-        <pre>&lt;script 
-    src="embed/2d-portal-embed.js" 
-    data-target="https://dim42.com" 
-    data-position="bottom-right" 
-    data-color="#00ff77"
-    data-size="1"
-    data-title="Enter Dim42"&gt;
-&lt;/script&gt;</pre>
+        <p>You can customize the portal using options:</p>
+        <pre>create2DPortal({
+    target: 'https://dim42.com',
+    position: 'bottom-right',
+    color: '#00ff77',
+    size: 1,
+    title: 'Enter Dim42'
+});</pre>
         
         <h3>Available Options:</h3>
         <ul>
-            <li><strong>data-target</strong>: The URL to navigate to when entering the portal (default: "https://dim42.com")</li>
-            <li><strong>data-position</strong>: Where to place the portal - "top-left", "top-right", "bottom-left", or "bottom-right" (default: "bottom-right")</li>
-            <li><strong>data-color</strong>: The color of the portal in hex format (default: "#00ff77")</li>
-            <li><strong>data-size</strong>: Size multiplier for the portal (default: 1)</li>
-            <li><strong>data-title</strong>: The title to display above the portal (default: "Enter Dim42")</li>
+            <li><strong>target</strong>: The URL to navigate to when entering the portal (default: "https://dim42.com")</li>
+            <li><strong>position</strong>: Where to place the portal - "top-left", "top-right", "bottom-left", or "bottom-right" (default: "bottom-right")</li>
+            <li><strong>color</strong>: The color of the portal in hex format (default: "#00ff77")</li>
+            <li><strong>size</strong>: Size multiplier for the portal (default: 1)</li>
+            <li><strong>title</strong>: The title to display above the portal (default: "Enter Dim42")</li>
         </ul>
     </div>
     
     <div class="example-section">
         <h2>dim Source Tracking</h2>
-        <p>The portal script automatically adds a <code>dim_source</code> parameter to the target URL, allowing the destination to know where visitors came from.</p>
+        <p>The portal automatically adds a <code>dim_source</code> parameter to the target URL, allowing the destination to know where visitors came from.</p>
         <p>For example, if your website is "example.com" and someone clicks your portal to Dim42, they'll be sent to:</p>
         <pre>https://dim42.com?dim_source=example.com</pre>
         <p>This allows Dim42 to create a return portal back to your site!</p>
@@ -142,12 +143,31 @@
     
     <div class="example-section">
         <h2>Multiple Portals</h2>
-        <p>You can add multiple portals to your site by including the script multiple times with different options:</p>
-        <pre>&lt;script src="embed/2d-portal-embed.js" data-position="bottom-left" data-color="#ff5500" data-target="https://game1.com"&gt;&lt;/script&gt;
-&lt;script src="embed/2d-portal-embed.js" data-position="bottom-right" data-color="#00ff77" data-target="https://dim42.com"&gt;&lt;/script&gt;</pre>
+        <p>You can add multiple portals to your site by calling create2DPortal multiple times with different options:</p>
+        <pre>create2DPortal({
+    target: 'https://game1.com',
+    position: 'bottom-left',
+    color: '#ff5500'
+});
+
+create2DPortal({
+    target: 'https://dim42.com',
+    position: 'bottom-right',
+    color: '#00ff77'
+});</pre>
     </div>
     
     <p>For more information and advanced usage, please visit <a href="https://dim42.com">Dim42</a>.</p>
+
+    <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
     
     <script>
         // Check for dim source parameter
@@ -167,7 +187,20 @@
         });
     </script>
     
-    <!-- Include the portal script -->
-    <script src="embed/2d-portal-embed.js" data-target="https://dim42.com" data-position="bottom-right" data-color="#00ff77"></script>
+    <!-- Initialize portal system and create portal -->
+    <script type="module">
+        import { initPortalSystem, create2DPortal } from '../js/Portal.js';
+        
+        // Initialize portal system
+        initPortalSystem();
+        
+        // Create portal
+        create2DPortal({
+            target: 'https://dim42.com',
+            position: 'bottom-right',
+            color: '#00ff77',
+            title: 'Enter Dim42'
+        });
+    </script>
 </body>
 </html> 

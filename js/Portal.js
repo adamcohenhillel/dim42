@@ -565,4 +565,304 @@ function initPortalSystem() {
     });
 }
 
+/**
+ * Creates a 2D portal that can be embedded in any webpage
+ * @param {Object} options Configuration options for the 2D portal
+ * @param {string} options.target The URL to navigate to when entering the portal (default: "https://dim42.com")
+ * @param {string} options.position Where to place the portal - "top-left", "top-right", "bottom-left", or "bottom-right" (default: "bottom-right")
+ * @param {string} options.color The color of the portal in hex format (default: "#00ff77")
+ * @param {number} options.size Size multiplier for the portal (default: 1)
+ * @param {string} options.title The title to display above the portal (default: "Enter Dim42")
+ * @returns {void}
+ */
+export function create2DPortal(options = {}) {
+    const {
+        target = 'https://dim42.com',
+        position = 'bottom-right',
+        color = '#00ff77',
+        size = 1,
+        title = 'Enter Dim42'
+    } = options;
+
+    // Convert color string to hex number
+    const colorHex = parseInt(color.replace('#', '0x'));
+
+    // Create container for the portal
+    const container = document.createElement('div');
+    container.id = 'dim42-portal-container';
+    container.style.cssText = `
+        position: fixed;
+        width: ${200 * size}px;
+        height: ${200 * size}px;
+        z-index: 9999;
+        pointer-events: auto;
+        user-select: none;
+    `;
+
+    // Set position
+    switch (position) {
+        case 'top-left':
+            container.style.top = '20px';
+            container.style.left = '20px';
+            break;
+        case 'top-right':
+            container.style.top = '20px';
+            container.style.right = '20px';
+            break;
+        case 'bottom-left':
+            container.style.bottom = '20px';
+            container.style.left = '20px';
+            break;
+        case 'bottom-right':
+        default:
+            container.style.bottom = '20px';
+            container.style.right = '20px';
+            break;
+    }
+
+    document.body.appendChild(container);
+
+    // Create title element
+    const titleElement = document.createElement('div');
+    titleElement.textContent = title;
+    titleElement.style.cssText = `
+        position: absolute;
+        top: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: ${color};
+        font-family: Arial, sans-serif;
+        font-size: ${16 * size}px;
+        font-weight: bold;
+        text-align: center;
+        text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        pointer-events: none;
+    `;
+    container.appendChild(titleElement);
+
+    // Create scene
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+    camera.position.z = 5;
+
+    // Create renderer
+    const renderer = new THREE.WebGLRenderer({ 
+        alpha: true,
+        antialias: true
+    });
+    renderer.setSize(200 * size, 200 * size);
+    renderer.setClearColor(0x000000, 0);
+    container.appendChild(renderer.domElement);
+
+    // Create portal group
+    const portalGroup = new THREE.Group();
+    scene.add(portalGroup);
+
+    // Create portal spiral
+    const spiralGeometry = new THREE.TorusGeometry(2, 0.3, 16, 100);
+    const spiralMaterial = new THREE.MeshBasicMaterial({ 
+        color: colorHex,
+        transparent: true,
+        opacity: 0.8
+    });
+    const spiral = new THREE.Mesh(spiralGeometry, spiralMaterial);
+    portalGroup.add(spiral);
+
+    // Create portal inner effect
+    const portalGeometry = new THREE.CircleGeometry(1.7, 32);
+    const portalMaterial = new THREE.MeshBasicMaterial({
+        color: colorHex,
+        transparent: true,
+        opacity: 0.6,
+        side: THREE.DoubleSide
+    });
+
+    // Create swirl texture
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    
+    // Create gradient
+    const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
+    
+    // Convert hex color to RGB components for gradient
+    const r = (colorHex >> 16) & 255;
+    const g = (colorHex >> 8) & 255;
+    const b = colorHex & 255;
+    
+    gradient.addColorStop(0, `rgb(${r}, ${g}, ${b})`);
+    gradient.addColorStop(0.5, `rgb(${Math.floor(r*0.7)}, ${Math.floor(g*0.7)}, ${Math.floor(b*0.7)})`);
+    gradient.addColorStop(1, `rgb(${Math.floor(r*0.4)}, ${Math.floor(g*0.4)}, ${Math.floor(b*0.4)})`);
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 512, 512);
+
+    // Create spiral pattern
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    for(let i = 0; i < 360; i += 30) {
+        ctx.beginPath();
+        ctx.arc(256, 256, i, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    portalMaterial.map = texture;
+
+    const portal = new THREE.Mesh(portalGeometry, portalMaterial);
+    portalGroup.add(portal);
+
+    // Add particles
+    const particles = [];
+    for(let i = 0; i < 20; i++) {
+        const particleGeometry = new THREE.SphereGeometry(0.03, 8, 8);
+        const particleMaterial = new THREE.MeshBasicMaterial({
+            color: colorHex,
+            transparent: true,
+            opacity: 0.8
+        });
+        const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+        
+        // Set random position
+        const angle = Math.random() * Math.PI * 2;
+        const radius = 1.7 + Math.random() * 0.5;
+        particle.position.x = Math.cos(angle) * radius;
+        particle.position.y = Math.sin(angle) * radius;
+        
+        // Store particle data
+        particle.userData.speed = 0.02 + Math.random() * 0.03;
+        particle.userData.angle = angle;
+        
+        portalGroup.add(particle);
+        particles.push(particle);
+    }
+
+    // Add click event to portal
+    renderer.domElement.addEventListener('click', () => {
+        // Add dim_source parameter
+        const separator = target.includes('?') ? '&' : '?';
+        const portalUrl = `${target}${separator}dim_source=${encodeURIComponent(window.location.hostname)}`;
+        
+        // Show overlay and set iframe source
+        const overlay = document.getElementById('gameOverlay');
+        const gameFrame = document.getElementById('gameFrame');
+        if (overlay && gameFrame) {
+            gameFrame.src = portalUrl;
+            window.currentGameUrl = portalUrl;  // Store URL for new tab button
+            overlay.style.display = 'block';
+            window.isOverlayActive = true;
+        } else {
+            // If no overlay exists, open in new tab
+            window.open(portalUrl, '_blank');
+        }
+    });
+
+    // Animation loop
+    function animate() {
+        requestAnimationFrame(animate);
+        
+        // Rotate portal
+        spiral.rotation.z += 0.01;
+        
+        // Rotate texture
+        if (portalMaterial.map) {
+            portalMaterial.map.rotation += 0.01;
+            portalMaterial.map.needsUpdate = true;
+        }
+        
+        // Update particles
+        particles.forEach(particle => {
+            particle.userData.angle += particle.userData.speed;
+            if (particle.userData.angle > Math.PI * 2) {
+                particle.userData.angle = 0;
+            }
+            const radius = 1.7 + Math.random() * 0.5;
+            particle.position.x = Math.cos(particle.userData.angle) * radius;
+            particle.position.y = Math.sin(particle.userData.angle) * radius;
+        });
+        
+        // Pulse effects
+        const pulse = Math.sin(Date.now() * 0.003) * 0.2 + 0.8;
+        portalMaterial.opacity = 0.6 * pulse;
+        spiralMaterial.opacity = 0.8 * pulse;
+        
+        // Slowly rotate the entire portal
+        portalGroup.rotation.z += 0.001;
+        
+        renderer.render(scene, camera);
+    }
+    
+    animate();
+
+    // Check for dim_source and create return portal if needed
+    const urlParams = new URLSearchParams(window.location.search);
+    const dimSource = urlParams.get('dim_source');
+    
+    if (dimSource) {
+        // Create return portal in opposite corner
+        create2DPortal({
+            target: dimSource.startsWith('http') ? dimSource : `https://${dimSource}`,
+            position: getOppositePosition(position),
+            color: '#ff5500', // Orange for return portals
+            size: size,
+            title: `Return to ${dimSource}`
+        });
+
+        // Show notification
+        showDimSourceNotification(dimSource, color);
+    }
+}
+
+function getOppositePosition(position) {
+    switch (position) {
+        case 'top-left': return 'bottom-right';
+        case 'top-right': return 'bottom-left';
+        case 'bottom-left': return 'top-right';
+        case 'bottom-right': return 'top-left';
+        default: return 'top-left';
+    }
+}
+
+function showDimSourceNotification(dimSource, color) {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: ${color};
+        color: black;
+        padding: 15px 25px;
+        border-radius: 8px;
+        font-family: Arial, sans-serif;
+        font-size: 18px;
+        font-weight: bold;
+        z-index: 9999;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        text-align: center;
+        max-width: 90%;
+    `;
+    
+    notification.textContent = `You arrived through a portal from ${dimSource}`;
+    document.body.appendChild(notification);
+    
+    // Show notification after a short delay
+    setTimeout(() => {
+        notification.style.opacity = '1';
+        
+        // Hide notification after 8 seconds
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            
+            // Remove notification after fade out
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 500);
+        }, 8000);
+    }, 1000);
+}
+
 export { Portal, initPortalSystem, createReturnPortal, checkDimSource, portalStyles, portalHTML }; 
