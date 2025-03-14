@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 
+// Add static cache at the top of the file, before the Portal class
+const previewCache = new Map();
+
 // Portal CSS styles
 const portalStyles = `
 /* Portal-specific styles */
@@ -273,7 +276,7 @@ const portalHTML = `
 
 // Portal class
 class Portal {
-    constructor(position, rotation, title, url, color = 0x00ff77, sizeMultiplier = 1.0, scene) {
+    constructor(position, rotation, title, url, color = 0x00ff77, sizeMultiplier = 1.0, scene, showPreview = false) {
         this.url = url;
         this.position = position;
         this.rotation = rotation;
@@ -282,6 +285,95 @@ class Portal {
         this.color = color;
         this.sizeMultiplier = sizeMultiplier;
         this.scene = scene;
+
+        // Only create preview if showPreview is true
+        if (showPreview) {
+            // Create preview plane with circular shape
+            const previewGeometry = new THREE.CircleGeometry(1.7 * sizeMultiplier, 32);
+            const previewMaterial = new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.5,  // Reduced base opacity
+                side: THREE.DoubleSide,
+                alphaTest: 0.5,
+                depthWrite: false  // Prevent z-fighting
+            });
+            this.previewPlane = new THREE.Mesh(previewGeometry, previewMaterial);
+            this.previewPlane.position.copy(position);
+            this.previewPlane.rotation.copy(rotation);
+            this.previewPlane.position.z += 0.05; // Closer to the portal
+            scene.add(this.previewPlane);
+
+            // Load preview image
+            const loader = new THREE.TextureLoader();
+            const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&meta=false&embed=screenshot.url`;
+            
+            // Check cache first
+            if (previewCache.has(url)) {
+                previewMaterial.map = previewCache.get(url);
+                previewMaterial.needsUpdate = true;
+            } else {
+                loader.load(
+                    previewUrl,
+                    (texture) => {
+                        // Create a canvas to modify the texture
+                        const canvas = document.createElement('canvas');
+                        canvas.width = texture.image.width;
+                        canvas.height = texture.image.height;
+                        const ctx = canvas.getContext('2d');
+
+                        // Draw the image
+                        ctx.drawImage(texture.image, 0, 0, canvas.width, canvas.height);
+
+                        // Create circular mask
+                        ctx.globalCompositeOperation = 'destination-in';
+                        ctx.beginPath();
+                        ctx.arc(canvas.width/2, canvas.height/2, canvas.width/2, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // Create new texture from masked canvas
+                        const maskedTexture = new THREE.CanvasTexture(canvas);
+                        
+                        // Store in cache
+                        previewCache.set(url, maskedTexture);
+                        
+                        previewMaterial.map = maskedTexture;
+                        previewMaterial.needsUpdate = true;
+                    },
+                    undefined,
+                    (error) => {
+                        console.error('Error loading preview:', error);
+                        // On error, show a placeholder
+                        const canvas = document.createElement('canvas');
+                        const size = 512;
+                        canvas.width = size;
+                        canvas.height = size;
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Create circular background
+                        ctx.beginPath();
+                        ctx.arc(size/2, size/2, size/2, 0, Math.PI * 2);
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fill();
+                        
+                        // Add text
+                        ctx.fillStyle = '#000000';
+                        ctx.font = '24px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('Preview not available', size/2, size/2);
+                        
+                        const texture = new THREE.CanvasTexture(canvas);
+                        
+                        // Cache the error texture too
+                        previewCache.set(url, texture);
+                        
+                        previewMaterial.map = texture;
+                        previewMaterial.needsUpdate = true;
+                    }
+                );
+            }
+        }
 
         // Create portal spiral effect
         const spiralGeometry = new THREE.TorusGeometry(2 * sizeMultiplier, 0.3 * sizeMultiplier, 16, 100);
@@ -497,6 +589,11 @@ class Portal {
         this.portalMaterial.opacity = 0.6 * pulse;
         this.spiral.material.opacity = 0.8 * pulse;
         this.spiral.material.emissiveIntensity = 0.5 * pulse;
+        
+        // Static preview opacity - no pulse
+        if (this.previewPlane) {
+            this.previewPlane.material.opacity = 0.5;  // Keep constant opacity
+        }
     }
 }
 
@@ -532,7 +629,8 @@ function createReturnPortal(sourceUrl, scene, portals, returnPortalCreated) {
         targetUrl,
         0x0088ff, // Blue color for return portals
         1.5,      // Smaller size (1.5x instead of 2x)
-        scene
+        scene,
+        true     // Show preview for return portals
     );
     
     // Add the portal to the array
