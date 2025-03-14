@@ -12,131 +12,97 @@ const portalStyles = `
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.5);
     z-index: 2000;
-    overflow: hidden; /* Prevent scrolling */
 }
-#gameFrame {
+
+#gameOverlay.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-container {
+    position: relative;
+    width: 95%;
+    height: 95%;
+    max-width: 1800px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.modal-header {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    height: 90%;
+    top: 12px;
+    right: 12px;
+    z-index: 10;
+    display: flex;
+    gap: 8px;
+    padding: 0;
+}
+
+#portalNavBar {
+    display: flex;
+    gap: 8px;
+}
+
+.portal-nav-button {
+    background: rgba(0, 255, 119, 0.9);
     border: none;
-    border-radius: 10px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.portal-nav-button:hover {
+    transform: scale(1.1);
+    background: rgba(0, 255, 119, 1);
+}
+
+.portal-logo {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    filter: brightness(0);
+}
+
+#gameFrame {
+    flex: 1;
+    width: 100%;
+    border: none;
     background: white;
 }
-#closeOverlay {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: #00ff77;
-    color: black;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    z-index: 2001;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: background-color 0.2s ease;
-}
-#openNewTab {
-    position: absolute;
-    top: 80px; /* Position below the close button */
-    right: 20px;
-    background: #00ff77;
-    color: black;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    z-index: 2001;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: background-color 0.2s ease;
-}
-.button-content {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    white-space: nowrap;
-}
-.portal-logo {
-    width: 24px;
-    height: 24px;
-    object-fit: contain;
-    filter: brightness(0) invert(1); /* Make icons white */
-}
-#closeOverlay:hover, #openNewTab:hover {
-    background: #00cc77;
-}
 
-/* Mobile-friendly adjustments for game overlay */
+/* Mobile-friendly adjustments */
 @media (max-width: 768px) {
-    #closeOverlay, #openNewTab {
-        padding: 12px 15px;
-        font-size: 14px;
-        width: auto;
-        max-width: 150px;
+    .modal-container {
+        width: 98%;
+        height: 98%;
     }
     
-    #gameFrame {
-        width: 95%;
-        height: 85%; /* Smaller height to make room for buttons */
-        top: 55%; /* Move down slightly to make room for buttons */
+    .modal-header {
+        top: 8px;
+        right: 8px;
     }
-}
-
-/* Even smaller screens */
-@media (max-width: 480px) {
-    #closeOverlay, #openNewTab {
-        padding: 15px;
-        font-size: 16px;
-        right: 10px;
-        width: auto;
-        max-width: 140px;
+    
+    .portal-nav-button {
+        width: 36px;
+        height: 36px;
     }
     
     .portal-logo {
         width: 20px;
         height: 20px;
-        filter: brightness(0) invert(1); /* Make icons white */
-    }
-    
-    /* Stack buttons vertically on very small screens */
-    #openNewTab {
-        top: 70px;          /* Position below the close button */
-        right: 10px;        /* Align with close button */
-    }
-    
-    #gameFrame {
-        width: 100%;
-        height: 80%;
-        border-radius: 0; /* Remove border radius on small screens */
-    }
-}
-
-/* Mobile styles */
-@media (max-width: 768px) {
-    #closeOverlay, #openNewTab {
-        padding: 15px 20px;  /* Larger padding on mobile */
-        font-size: 18px;     /* Larger font on mobile */
-    }
-    
-    .portal-logo {
-        width: 32px;         /* Larger logo on mobile */
-        height: 32px;
-        filter: brightness(0) invert(1); /* Make icons white */
-    }
-    
-    #openNewTab {
-        right: 200px;        /* More space between buttons on mobile */
     }
 }
 
@@ -178,28 +144,25 @@ const portalStyles = `
 // Portal HTML elements
 const portalHTML = `
 <div id="gameOverlay">
-    <div style="display: flex; justify-content: space-between; padding: 10px 20px; width: 100%;">
-        <button id="closeOverlay" style="font-size: max(16px, 2.5vw); padding: 10px 20px;">
-            <div class="button-content">
-                <img src="assets/back.png" alt="Back Icon" class="portal-logo" style="filter: brightness(0); width: max(20px, 3vw); height: max(20px, 3vw);">
-                <span>Back to Dim42</span>
-            </div>
-        </button>
-        <button id="openNewTab" style="font-size: max(16px, 2.5vw); padding: 10px 20px;">
-            <div class="button-content">
-                <img src="assets/newtab.png" alt="New Tab Icon" class="portal-logo" style="filter: brightness(0); width: max(20px, 3vw); height: max(20px, 3vw);">
-                <span>Open in New Tab</span>
-            </div>
-        </button>
+    <div class="modal-container">
+        <div class="modal-header">
+            <nav id="portalNavBar">
+                <button id="closeOverlay" class="portal-nav-button" title="Back to Dim42">
+                    <img src="assets/back.png" alt="Back Icon" class="portal-logo">
+                </button>
+                <button id="openNewTab" class="portal-nav-button" title="Open in New Tab">
+                    <img src="assets/newtab.png" alt="New Tab Icon" class="portal-logo">
+                </button>
+            </nav>
+        </div>
+        <iframe id="gameFrame" allowfullscreen></iframe>
     </div>
-    <iframe id="gameFrame" allowfullscreen style="width: 95%; height: 90%; margin: auto;"></iframe>
 </div>
 
 <div id="dimNotification">
     <div id="dimMessage"></div>
     <button id="dimCloseBtn">Close</button>
-</div>
-`;
+</div>`;
 
 // Portal class
 class Portal {
@@ -398,22 +361,11 @@ class Portal {
                 // Add a small delay to ensure the collision is intentional
                 setTimeout(() => {
                     if (position.distanceTo(this.portal.position) < COLLISION_THRESHOLD) {
-                        // Show overlay and set active state
-                        const overlay = document.getElementById('gameOverlay');
-                        const gameFrame = document.getElementById('gameFrame');
-                        
-                        // Add dim_source parameter to track where the user came from
                         let targetUrl = this.url;
                         const separator = targetUrl.includes('?') ? '&' : '?';
                         targetUrl += `${separator}dim_source=${encodeURIComponent(window.location.hostname)}`;
                         
-                        gameFrame.src = targetUrl;
-                        window.currentGameUrl = targetUrl;  // Store current game URL with dim_source
-                        overlay.style.display = 'block';
-                        window.isOverlayActive = true;  // Set state
-                        
-                        // Log portal activation for debugging
-                        console.log(`Portal activated! Navigating to: ${targetUrl}`);
+                        activatePortal(targetUrl);
                     }
                 }, 100);
             }
@@ -548,21 +500,72 @@ function initPortalSystem() {
     window.currentGameUrl = '';
     window.lastOverlayCloseTime = 0;
     window.OVERLAY_COOLDOWN = 5000;  // 5 seconds cooldown
+    window.portalStack = [];  // Stack to track portal navigation
+    
+    // Listen for messages from iframes
+    window.addEventListener('message', (event) => {
+        if (event.data.type === 'PORTAL_NAVIGATION') {
+            const { url } = event.data;
+            const gameFrame = document.getElementById('gameFrame');
+            
+            // Update the iframe source
+            gameFrame.src = url;
+            window.currentGameUrl = url;
+            window.portalStack.push(url);
+            
+            console.log('Portal stack updated:', window.portalStack);
+        }
+    });
     
     // Add event listeners for overlay controls
     document.getElementById('closeOverlay').addEventListener('click', () => {
         const overlay = document.getElementById('gameOverlay');
         const gameFrame = document.getElementById('gameFrame');
-        overlay.style.display = 'none';
-        gameFrame.src = '';  // Clear the iframe
-        window.isOverlayActive = false;  // Reset state
-        window.lastOverlayCloseTime = Date.now();  // Set the close time
+        
+        window.portalStack.pop();
+        
+        if (window.portalStack.length > 0) {
+            const previousUrl = window.portalStack[window.portalStack.length - 1];
+            gameFrame.src = previousUrl;
+            window.currentGameUrl = previousUrl;
+        } else {
+            overlay.classList.remove('active');
+            gameFrame.src = '';
+            window.isOverlayActive = false;
+            window.lastOverlayCloseTime = Date.now();
+        }
     });
 
     // Add new tab handler
     document.getElementById('openNewTab').addEventListener('click', () => {
         window.open(window.currentGameUrl, '_blank');
     });
+}
+
+// Update portal activation to use postMessage
+function activatePortal(targetUrl) {
+    // Check if we're in an iframe
+    if (window !== window.top) {
+        // We're in an iframe, send message to parent
+        window.top.postMessage({
+            type: 'PORTAL_NAVIGATION',
+            url: targetUrl
+        }, '*');
+    } else {
+        // We're in the top window, handle normally
+        const overlay = document.getElementById('gameOverlay');
+        const gameFrame = document.getElementById('gameFrame');
+        
+        if (overlay && gameFrame) {
+            window.portalStack.push(targetUrl);
+            gameFrame.src = targetUrl;
+            window.currentGameUrl = targetUrl;
+            overlay.classList.add('active');
+            window.isOverlayActive = true;
+        } else {
+            window.open(targetUrl, '_blank');
+        }
+    }
 }
 
 /**
@@ -740,22 +743,10 @@ export function create2DPortal(options = {}) {
 
     // Add click event to portal
     renderer.domElement.addEventListener('click', () => {
-        // Add dim_source parameter
         const separator = target.includes('?') ? '&' : '?';
         const portalUrl = `${target}${separator}dim_source=${encodeURIComponent(window.location.hostname)}`;
         
-        // Show overlay and set iframe source
-        const overlay = document.getElementById('gameOverlay');
-        const gameFrame = document.getElementById('gameFrame');
-        if (overlay && gameFrame) {
-            gameFrame.src = portalUrl;
-            window.currentGameUrl = portalUrl;  // Store URL for new tab button
-            overlay.style.display = 'block';
-            window.isOverlayActive = true;
-        } else {
-            // If no overlay exists, open in new tab
-            window.open(portalUrl, '_blank');
-        }
+        activatePortal(portalUrl);
     });
 
     // Animation loop
