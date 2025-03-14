@@ -629,17 +629,6 @@
         document.getElementById('submitPortalBtn').addEventListener('click', function() {
             window.open('https://forms.gle/Ld5TXTnTmgKSzPJE7', '_blank');
         });
-        
-        document.getElementById('testdimBtn').addEventListener('click', function() {
-            // Get the current URL
-            const currentUrl = window.location.href;
-            // Create a URL object to handle the parameters properly
-            const url = new URL(currentUrl);
-            // Set the dim_source parameter to "test-portal"
-            url.searchParams.set('dim_source', 'test-portal');
-            // Open the URL in a new tab
-            window.open(url.toString(), '_blank');
-        });
 
         // Modify overlay handlers
         document.getElementById('closeOverlay').addEventListener('click', () => {
