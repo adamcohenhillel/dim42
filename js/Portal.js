@@ -37,24 +37,116 @@ const portalStyles = `
 
 .modal-header {
     position: absolute;
-    top: 12px;
-    right: 12px;
+    bottom: 0;
+    left: 0;
+    right: 0;
     z-index: 10;
     display: flex;
-    gap: 8px;
-    padding: 0;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: rgba(0, 255, 119, 0.1);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(0, 255, 119, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.modal-header.hidden {
+    transform: translateY(100%);
+}
+
+.show-nav-button {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 255, 119, 0.9);
+    border: none;
+    width: 40px;
+    height: 24px;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal-header.hidden .show-nav-button,
+.modal-header:hover .show-nav-button {
+    opacity: 1;
+}
+
+.show-nav-button::after {
+    content: "▲";
+    color: black;
+    font-size: 12px;
+}
+
+.modal-header.hidden .show-nav-button::after {
+    content: "▼";
+}
+
+.portal-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 16px;
+    color: #00b357;
+    flex: 1;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 0 12px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.portal-breadcrumb::-webkit-scrollbar {
+    display: none;
+}
+
+.portal-breadcrumb-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: rgba(0, 255, 119, 0.1);
+    border-radius: 8px;
+    transition: background 0.2s ease;
+}
+
+.portal-breadcrumb-item:hover {
+    background: rgba(0, 255, 119, 0.2);
+}
+
+.portal-breadcrumb-item:not(:last-child)::after {
+    content: "→";
+    color: #00b357;
+    font-size: 18px;
+}
+
+.portal-url {
+    font-family: ui-monospace, 'SF Mono', monospace;
+    font-size: 14px;
+    color: #00b357;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 300px;
 }
 
 #portalNavBar {
     display: flex;
-    gap: 8px;
+    gap: 12px;
 }
 
 .portal-nav-button {
     background: rgba(0, 255, 119, 0.9);
     border: none;
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -70,8 +162,8 @@ const portalStyles = `
 }
 
 .portal-logo {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     object-fit: contain;
     filter: brightness(0);
 }
@@ -86,23 +178,36 @@ const portalStyles = `
 /* Mobile-friendly adjustments */
 @media (max-width: 768px) {
     .modal-container {
-        width: 98%;
-        height: 98%;
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
     }
     
     .modal-header {
-        top: 8px;
-        right: 8px;
+        padding: 16px 12px;
     }
     
     .portal-nav-button {
-        width: 36px;
-        height: 36px;
+        width: 48px;
+        height: 48px;
     }
     
     .portal-logo {
-        width: 20px;
-        height: 20px;
+        width: 24px;
+        height: 24px;
+    }
+
+    .portal-url {
+        max-width: 200px;
+        font-size: 16px;
+    }
+
+    .portal-breadcrumb {
+        font-size: 18px;
+    }
+
+    .portal-breadcrumb-item {
+        padding: 10px 16px;
     }
 }
 
@@ -146,6 +251,8 @@ const portalHTML = `
 <div id="gameOverlay">
     <div class="modal-container">
         <div class="modal-header">
+            <button class="show-nav-button"></button>
+            <div class="portal-breadcrumb"></div>
             <nav id="portalNavBar">
                 <button id="closeOverlay" class="portal-nav-button">
                     <img src="assets/back.png" alt="Back Icon" class="portal-logo">
@@ -502,6 +609,40 @@ function initPortalSystem() {
     window.OVERLAY_COOLDOWN = 5000;  // 5 seconds cooldown
     window.portalStack = [];  // Stack to track portal navigation
     
+    // Add hide/show navigation functionality
+    const modalHeader = document.querySelector('.modal-header');
+    const showNavButton = document.querySelector('.show-nav-button');
+    
+    showNavButton.addEventListener('click', () => {
+        modalHeader.classList.toggle('hidden');
+    });
+
+    // Auto-hide navigation after 3 seconds of inactivity
+    let hideTimeout;
+    function resetHideTimeout() {
+        clearTimeout(hideTimeout);
+        modalHeader.classList.remove('hidden');
+        hideTimeout = setTimeout(() => {
+            if (!modalHeader.matches(':hover')) {
+                modalHeader.classList.add('hidden');
+            }
+        }, 3000);
+    }
+
+    // Reset timeout on mouse movement or touch
+    modalHeader.addEventListener('mousemove', resetHideTimeout);
+    modalHeader.addEventListener('touchstart', resetHideTimeout);
+    modalHeader.addEventListener('mouseenter', resetHideTimeout);
+    
+    // Keep visible while hovering
+    modalHeader.addEventListener('mouseleave', () => {
+        if (!modalHeader.classList.contains('hidden')) {
+            hideTimeout = setTimeout(() => {
+                modalHeader.classList.add('hidden');
+            }, 1000);
+        }
+    });
+
     // Listen for messages from iframes
     window.addEventListener('message', (event) => {
         if (event.data.type === 'PORTAL_NAVIGATION') {
@@ -528,11 +669,17 @@ function initPortalSystem() {
             const previousUrl = window.portalStack[window.portalStack.length - 1];
             gameFrame.src = previousUrl;
             window.currentGameUrl = previousUrl;
+            updateBreadcrumb();
+            
+            // Update visual depth effect
+            const depth = window.portalStack.length;
+            overlay.style.background = `rgba(0, 0, 0, ${0.5 + (depth * 0.1)})`;
         } else {
             overlay.classList.remove('active');
             gameFrame.src = '';
             window.isOverlayActive = false;
             window.lastOverlayCloseTime = Date.now();
+            overlay.style.background = 'rgba(0, 0, 0, 0.5)';
         }
     });
 
@@ -542,7 +689,48 @@ function initPortalSystem() {
     });
 }
 
-// Update portal activation to use postMessage
+// Function to update breadcrumb navigation
+function updateBreadcrumb() {
+    const breadcrumb = document.querySelector('.portal-breadcrumb');
+    if (!breadcrumb) return;
+
+    breadcrumb.innerHTML = '';
+    
+    window.portalStack.forEach((url, index) => {
+        const item = document.createElement('div');
+        item.className = 'portal-breadcrumb-item';
+        
+        // Create URL display
+        const urlDisplay = document.createElement('span');
+        urlDisplay.className = 'portal-url';
+        try {
+            const urlObj = new URL(url);
+            urlDisplay.textContent = urlObj.hostname;
+        } catch (e) {
+            urlDisplay.textContent = url;
+        }
+        
+        item.appendChild(urlDisplay);
+        breadcrumb.appendChild(item);
+        
+        // Add click handler for navigation
+        if (index < window.portalStack.length - 1) {
+            item.style.cursor = 'pointer';
+            item.addEventListener('click', () => {
+                // Navigate back to this point in the stack
+                while (window.portalStack.length > index + 1) {
+                    window.portalStack.pop();
+                }
+                const gameFrame = document.getElementById('gameFrame');
+                gameFrame.src = url;
+                window.currentGameUrl = url;
+                updateBreadcrumb();
+            });
+        }
+    });
+}
+
+// Update the activatePortal function to include breadcrumb updates
 function activatePortal(targetUrl) {
     // Check if we're in an iframe
     if (window !== window.top) {
@@ -562,6 +750,11 @@ function activatePortal(targetUrl) {
             window.currentGameUrl = targetUrl;
             overlay.classList.add('active');
             window.isOverlayActive = true;
+            updateBreadcrumb();
+            
+            // Add visual depth effect based on stack depth
+            const depth = window.portalStack.length;
+            overlay.style.background = `rgba(0, 0, 0, ${0.5 + (depth * 0.1)})`;
         } else {
             window.open(targetUrl, '_blank');
         }
