@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "*.html", "use": "@vercel/static" },
+    { "src": "examples/*.html", "use": "@vercel/static" },
+    { "src": "server.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/3d-portal-example", "dest": "/examples/3d-portal-example.html" },
+    { "src": "/2d-portal-example", "dest": "/examples/2d-portal-example.html" },
+    { "src": "/(.*)", "dest": "/$1" }
+  ]
+} 
