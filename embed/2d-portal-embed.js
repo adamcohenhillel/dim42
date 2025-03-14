@@ -648,6 +648,14 @@
             }
             
             animateReturnPortal();
+        } else {
+            // If no dim_source is provided, create a hidden return portal to the current website
+            // This ensures that when users click the portal, they can return to this site
+            console.log("No dim_source parameter found, using current website as default source for return journey");
+            
+            // Store the current website hostname as a data attribute on the container
+            // This will be used when creating the portal to add the dim_source parameter
+            container.setAttribute('data-source-site', window.location.hostname || "current-website");
         }
     });
 })(); 

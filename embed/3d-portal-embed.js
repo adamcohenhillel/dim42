@@ -458,14 +458,15 @@ class Dim42Portal {
 function createdimSourcePortal(scene, options = {}) {
     // Get URL parameters
     const urlParams = new URLSearchParams(window.location.search);
-    const dimSource = urlParams.get('dim_source');
+    let dimSource = urlParams.get('dim_source');
     
+    // If no dim_source is provided in URL, use current website hostname as default
     if (!dimSource) {
-        console.log("No dim_source parameter found in URL");
-        return null;
+        dimSource = window.location.hostname || "current-website";
+        console.log("No dim_source parameter found in URL, using current website as default:", dimSource);
+    } else {
+        console.log("Found dim_source:", dimSource);
     }
-    
-    console.log("Found dim_source:", dimSource);
     
     // Determine target URL - handle both domain names and full URLs
     let targetUrl;
