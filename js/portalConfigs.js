@@ -51,6 +51,14 @@ const portalConfigs = [
         sizeMultiplier: 1.0
     },
     {
+        position: new THREE.Vector3(-2, 0, 10),
+        rotation: new THREE.Euler(0, -2.5, 0),
+        title: "Space Colonizer",
+        url: "https://www.spacecolonizer.app/",
+        color: 0x00ff77,
+        sizeMultiplier: 1.0
+    },
+    {
         position: new THREE.Vector3(-10, 0, -2),
         rotation: new THREE.Euler(0, 1.0, 0),
         title: "Submit New Portal",
@@ -60,4 +68,4 @@ const portalConfigs = [
     }
 ];
 
-export default portalConfigs; 
+export default portalConfigs;
